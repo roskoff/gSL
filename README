@@ -1,0 +1,33 @@
+
+** gSL, Intérprete GNU SL
+
+Esta es la versión GNU del intérprete de SL, un lenguage 
+utilizado en el ámbito académico para enseñar programación
+a nivel introductorio.
+
+La página oficial de SL es www.cnc.una.py/sl y si bien el
+software es de distribución gratuita, es de código cerrado,
+y este proyecto no tiene relación alguna con el CNC.
+
+Esta implementación pretende mantenerse conforme al lenguaje
+original y proveer todas las construcciones y rutinas
+predefinidas.
+
+
+** Sobre la LICENCIA:
+
+Copyright (C) gSL Eliseo Ocampos <roskoff@gmail.com>
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
