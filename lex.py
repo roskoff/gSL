@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #------------------------------------------------------------
 # lex.py
 #
@@ -18,13 +19,14 @@ reserved = {
     'fin' : 'FIN',
     'hasta' : 'HASTA',
     'inicio' : 'INICIO',
-    'lib' : 'LIB',
-    'libext' : 'LIBEXT',
+    'lib' : 'LIB',  # Listado como palabra reservada, pero no se en que caso se usa
+    'libext' : 'LIBEXT',  # Listado como palabra reservada, pero no se en que caso se usa 
     'matriz' : 'MATRIZ',
     'mientras' : 'MIENTRAS',
     'not' : 'NOT',
     'or' : 'OR',
     'paso' : 'PASO',
+    'sub' : 'SUBRUTINA',
     'subrutina' : 'SUBRUTINA',
     'programa' : 'PROGRAMA',
     'ref' : 'REF',
@@ -36,7 +38,7 @@ reserved = {
     'tipos' : 'TIPOS',
     'var' : 'VARIABLES',
     'variables' : 'VARIABLES',
-    'vector' : 'VECTOR',
+    'vector' : 'VECTOR'
 }
 
 # Lista de nombres de los tokens
@@ -78,8 +80,9 @@ def t_NUMERO(t):
     return t
 
 def t_ID(t):
-    r'[a-zA-Z_][a-zA-Z0-9_]*'
+    r'[a-zA-Z_ñÑ][a-zA-Z0-9_ñÑ]*'
     t.type = reserved.get(t.value,'ID')    # Verificar si es palabra reservada 
+    t.value = t.value[0:31]  # Solo son validos los 32 primeros caracteres (Introduccion al Lenguaje SL, p. 15)
     return t
 
 def t_CADENA(t):

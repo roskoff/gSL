@@ -49,4 +49,17 @@ inicio
 
 fin
 
+sub f_dos_params(a: cadena; b : numerico) retorna cadena
+inicio
+fin
+
+sub p_params(a, j, i: numerico; r : logico; c: cadena) retorna cadena
+tipos
+   string : cadena
+var
+   local: cadena
+inicio
+fin
+
+
 

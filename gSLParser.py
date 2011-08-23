@@ -44,8 +44,9 @@ def p_declaration(p):
     """ declaration : VARIABLES variables_item_list
                     | TIPOS tipos_item_list
                     | CONSTANTES constantes_item_list
+                    | empty
     """
-    p[0] = p[2]
+    #p[0] = p[2]
 
 def p_variables_item_list(p):
     """ variables_item_list : variables_item_list variables_item
@@ -113,7 +114,7 @@ def p_subrutine_signature(p):
     """
 
 def p_function_signature(p):
-    """ function_signature : SUBRUTINA ID PAREN_I PAREN_D RETORNA ID
+    """ function_signature : SUBRUTINA ID PAREN_I parameters_list PAREN_D RETORNA ID
     """
     # XXX Recordar el manejo de la instruccion "retorna"
     # XXX Falta lista de parametros
@@ -121,10 +122,21 @@ def p_function_signature(p):
     print_debug("Funcion retorna: " + p[6])
 
 def p_procedure_signature(p):
-    """ procedure_signature : SUBRUTINA ID PAREN_I PAREN_D
+    """ procedure_signature : SUBRUTINA ID PAREN_I parameters_list PAREN_D
     """
     print_debug("Procedimiento creado: " + p[2])
+    print_debug("Parametros: " + str(p[4]))
     # XXX Falta lista de parametros
+
+def p_parameters_list(p):
+    """ parameters_list : parameters_list PUNTO_Y_COMA parameters_item
+                        | parameters_item
+    """
+
+def p_parameters_item(p):
+    """ parameters_item : variables_item
+                        | empty
+    """
 
 def p_body_statements(p):
     """ body_statements : INICIO statement_list FIN
