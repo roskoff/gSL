@@ -1,0 +1,40 @@
+programa hola 
+var
+ e: numerico
+const
+ PI = 3.1415
+tipos
+ f: cadena
+var
+ o: numerico
+ MAT : numerico
+ DEBUG: logico
+inicio
+  e = 0.35173 - 5
+      * 80
+  //31 + 69
+
+  MAT = 777
+  DEBUG = 0
+  o = e * e
+
+  // Llamando a func1()
+  o = func1(5, 10, MAT, DEBUG)
+
+fin
+
+sub func1(param1, param2: numerico; m: t_matriz; ref bool: logico ) retorna numerico
+var
+  c: numerico
+inicio
+  c = 3.14
+fin
+
+sub proc1( ref param: cadena; v : tipo_vector)
+const
+ HEX = '0123456789ABCEF'
+tipos
+ boolean: logico
+inicio
+  // 7 - 9
+fin
