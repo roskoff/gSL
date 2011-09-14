@@ -176,13 +176,26 @@ class TestLexReservedWords(unittest.TestCase):
     def test_lex_08_strings(self):
         run_import("lex_08_strings")
         result = sys.stdout.getvalue()
-        #self.assert_(check_expected(result, ""))
-        self.assertEquals(result, 
+        self.assert_(check_expected(result,
+        #self.assertEquals(result, 
                                     "(CADENA,'\"texto literal\"',1,0)\n"
                                     "(CADENA,\"'comillas simples'\",2,16)\n"
                                     "(CADENA,'\"La dama exclam\\xc3\\xb3: \\\'Oh! D\\xc3\\xa9jenlo ir!\\\'\"',3,35)\n"
                                     "(CADENA,'\\\'esta es una \"cita\"\\\'',4,74)\n")
-                    #)
+                    )
+
+    def test_lex_09_ilegal_chars(self):
+        run_import("lex_09_ilegal_chars")
+        result = sys.stdout.getvalue()
+        self.assert_(check_expected(result,
+        #self.assertEquals(result,
+                                    "Caracter ilegal: '#'\n"
+                                    "Caracter ilegal: '@'\n"
+                                    "Caracter ilegal: '\\'\n"
+                                    "Caracter ilegal: '?'\n"
+                                    "Caracter ilegal: '$'\n"
+                                    "Caracter ilegal: '~'\n")
+                    )
 
 if __name__ == '__main__':
     unittest.main()
