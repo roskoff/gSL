@@ -1,0 +1,5 @@
+programa programa_input_2
+inicio
+   j = 15 / 1 + 2 * 100 - (23 + -3)
+   //j = (23 + -3) - (100)
+fin

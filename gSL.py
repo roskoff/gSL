@@ -2,8 +2,10 @@ import sys
 from gSLParser import yacc
 
 if __name__ == "__main__":
-    file = open('./input.txt')
-    contents = file.read()
+    file = open(sys.argv[1])
+    source_code = file.read()
+    tree = yacc.parse(source_code, debug=0)
 
-    t = yacc.parse(contents)
+    exec compile(tree, "<gsl_source_code>", "exec")
+
 
