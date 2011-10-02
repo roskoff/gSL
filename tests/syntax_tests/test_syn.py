@@ -40,26 +40,26 @@ class TestAST(unittest.TestCase):
     def test_syn_01_empty_program(self):
         run_import("syn_01_empty_program")
         result = sys.stdout.getvalue()
-        self.assert_(check_expected(result,
-#        self.assertEquals(result,
-                                    "Module(body=[])\n")
-                     )
+        #self.assert_(check_expected(result,
+        self.assertEquals(result,
+                                    "Module(body=[Assign(targets=[Name(id='cadena', ctx=Store())], value=Str(s='')), Assign(targets=[Name(id='numerico', ctx=Store())], value=Num(n=0)), Assign(targets=[Name(id='logico', ctx=Store())], value=Name(id='True', ctx=Load()))])\n")
+#                     )
 
     def test_syn_02_empty_named_program(self):
         run_import("syn_02_empty_named_program")
         result = sys.stdout.getvalue()
-        self.assert_(check_expected(result,
-#        self.assertEquals(result,
-                                    "Module(body=[Expr(value=Str(s='nombre_programa'))])\n")
-                     )
+#        self.assert_(check_expected(result,
+        self.assertEquals(result,
+                                    "Module(body=[Assign(targets=[Name(id='cadena', ctx=Store())], value=Str(s='')), Assign(targets=[Name(id='numerico', ctx=Store())], value=Num(n=0)), Assign(targets=[Name(id='logico', ctx=Store())], value=Name(id='True', ctx=Load())), Expr(value=Str(s='nombre_programa'))])\n")
+#                     )
 
     def test_syn_03_empty_program_comments(self):
         run_import("syn_03_empty_program_comments")
         result = sys.stdout.getvalue()
-        self.assert_(check_expected(result,
-#        self.assertEquals(result,
-                                    "Module(body=[Expr(value=Str(s='nombre_programa'))])\n")
-                     )
+#        self.assert_(check_expected(result,
+        self.assertEquals(result,
+                                    "Module(body=[Assign(targets=[Name(id='cadena', ctx=Store())], value=Str(s='')), Assign(targets=[Name(id='numerico', ctx=Store())], value=Num(n=0)), Assign(targets=[Name(id='logico', ctx=Store())], value=Name(id='True', ctx=Load())), Expr(value=Str(s='nombre_programa'))])\n")
+#                     )
 
 if __name__ == '__main__':
     unittest.main()

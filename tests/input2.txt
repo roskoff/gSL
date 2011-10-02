@@ -1,5 +1,11 @@
 programa programa_input_2
+var
+j : numerico
 inicio
+   //a = b
    j = 15 / 1 + 2 * 100 - (23 + -3)
    //j = (23 + -3) - (100)
+   imprimir(55, 12, 3 - 1)
+   imprimir(j)
+   imprimir()
 fin

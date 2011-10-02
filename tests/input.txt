@@ -18,11 +18,12 @@ inicio
   DEBUG = 0
   o = e * e
 
+  imprimir(e, o, MAT, DEBUG)
   // Llamando a func1()
-  o = func1(5, 10, MAT, DEBUG)
+//  o = func1(5, 10, MAT, DEBUG)
 
 fin
-
+/*
 sub func1(param1, param2: numerico; m: t_matriz; ref bool: logico ) retorna numerico
 var
   c: numerico
@@ -38,3 +39,4 @@ tipos
 inicio
   // 7 - 9
 fin
+*/

@@ -31,10 +31,18 @@ def gSLParser(debug):
                   | body
         """
         astree = Module( body = [])
+        # Antes que nada se agregan los tipos de datos predefinidos
+        tipos_predefinidos = [
+            Assign(targets = [Name(id = 'cadena', ctx = Store())], value = Str(s = '')),
+            Assign(targets = [Name(id = 'numerico', ctx = Store())], value = Num(n = 0)),
+            Assign(targets = [Name(id = 'logico', ctx = Store())], value = Name( id = 'True', ctx = Load()))
+            ]
+        astree.body = astree.body + tipos_predefinidos
+
         if len(p) == 4:
             # guardar ID del programa
             astree.body.append(Expr(value=Str(s=p[2])))
-    	# guardar las instrucciones del cuerpo
+            # guardar las instrucciones del cuerpo
             if (p[3] != []):
                 print_debug(p[3])
                 astree.body = astree.body + p[3]
@@ -66,12 +74,17 @@ def gSLParser(debug):
                              | declaration
         """
         if len(p) == 3:
-            p[0] = p[1] + [p[2]]
+            if p[2] == None or p[2] == []:
+                p[0] = p[1]
+            else:
+                p[0] = p[1] + p[2]
         if len(p) == 2:
             if p[1] == None or p[1] == []:
                 p[0] = []
             else:
-                p[0] = [p[1]]
+                p[0] = p[1]
+        for ass in p[0]:
+            print_debug("declaraciones: "+ dump(ass))
     
     def p_body_statements(p):
         """ body_statements : INICIO statement_list FIN
@@ -164,20 +177,27 @@ def gSLParser(debug):
         """
         if len(p) == 3:
             print_debug("Declaracion: " + p[1])
-        p[0] = p[1]
+            p[0] = p[2]
     
     def p_variables_item_list(p):
         """ variables_item_list : variables_item_list variables_item
                                 | variables_item
         """
         # Agregar a la tabla de simbolos, inicializar
-        #p[0] = []
+        if len(p) == 3:
+            p[0] = p[1] + [p[2]]
+        if len(p) == 2:
+            p[0] = [p[1]]
     
     def p_variables_item(p):
         """ variables_item : id_list DOS_PUNTOS IDENTIFICADOR
         """
         print_debug("Tipo de la variable: (" + p[3] + ")")
-        #p[0] = []
+	#XXX Controlar que IDENTIFICADOR sea un tipo de dato
+	id_list = []
+	for var_id in p[1]:
+            id_list.append(Name(id = var_id, ctx = Store()))
+        p[0] = Assign(targets = id_list, value = Name(id = p[3], ctx = Load()))
     
     def p_tipos_item_list(p):
         """ tipos_item_list : tipos_item_list tipos_item
@@ -208,7 +228,6 @@ def gSLParser(debug):
         print_debug("Constante definida por usuario: (" + str(p[1]) +":"+ str(p[3]) + ")")
         #p[0] = []
     
-    
     def p_id_list(p):
         """ id_list : id_list COMA IDENTIFICADOR
                     | IDENTIFICADOR
@@ -219,8 +238,6 @@ def gSLParser(debug):
             p[0] = [p[1]]
             identificadores[p[1]] = 0 # Define e inicializa
         print_debug( "Lista IDs: (" + str(p[0]) + ")")
-        #p[0] = []
-    
     
     def p_empty(p):
         """ empty :
@@ -235,25 +252,31 @@ def gSLParser(debug):
             identificadores[p[1]] = p[3]
             print_debug(p[1] + ' <- ' + str(p[3]))
         except LookupError:
-            print_debug("Identificador no está definido: '%s'" % p[1])
-            p[0] = 0
+            print_debug("'%s' no está definido'" % p[1])
+            raise NameError("'%s' no está definido" % p[1])
         p[0] = Assign(targets=[Name(id=p[1], ctx=Store())], value=p[3])
     
     def p_statement_subrutine_call(p):
         'statement : subrutine_call'
-        p[0] = []
+        p[0] = p[1]
     
     def p_subrutine_call(p):
         'subrutine_call : IDENTIFICADOR PAREN_I arguments_list PAREN_D'
         print_debug("Llamada a subrutina: " + p[1] + ", argumentos: " + str(p[3]))
-        #p[0] = []
+	# Si no se reciben argumentos, pasar lista vacía
+	if p[3] == [None]: p[3] = []
+        p[0] = Expr(value = Call(func = Name(id = p[1], ctx=Load()), 
+                                 args = p[3], 
+                                 keywords=[], 
+                                 starargs=None, kwargs=None))
+        print_debug(dump(p[0]))
     
     def p_arguments_list(p):
         """arguments_list : arguments_list COMA argument
                           | argument
         """
         if len(p) == 4:
-            p[0] = [p[3]] + p[1]
+            p[0] = p[1] + [p[3]]
         elif len(p) == 2:
             p[0] = [p[1]]
     
@@ -261,7 +284,7 @@ def gSLParser(debug):
         """ argument : expression
                      | empty
         """
-        #p[0] = p[1]
+        p[0] = p[1]
     
     def p_expression_binop(p):
         '''expression : expression S_MAS expression
