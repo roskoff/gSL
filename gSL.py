@@ -1,4 +1,6 @@
+# -*- coding: utf-8 -*-
 import sys
+import argparse
 from gSLParser import gSLParser
 
 def getRTL():
@@ -29,12 +31,17 @@ def getRTL():
     return functions
 
 if __name__ == "__main__":
+    arg_parser = argparse.ArgumentParser(description = 'gSL - Intérprete para el lenguaje SL')
+    arg_parser.add_argument('-d', '--print-debug', action='store_true')
+    arg_parser.add_argument('archivo_fuente')
+    argumentos = arg_parser.parse_args()
+
     # Interpretaremos el archivo pasado por linea de comandos
-    file = open(sys.argv[1])
+    file = open(argumentos.archivo_fuente)
     source_code = file.read()
 
     # Creamos el parser
-    gParser = gSLParser(debug = True)
+    gParser = gSLParser(debug = argumentos.print_debug)
 
     # Generamos el AST
     tree = gParser.parse(source_code, debug=0)

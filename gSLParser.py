@@ -323,6 +323,12 @@ def gSLParser(debug):
         p[0] = Name(id = p[1],
                     ctx=Load())
 
+    def p_expression_cadena(p):
+        'expression : CADENA'
+        # Tomamos desde el segundo caracter hasta el penúltimo
+        # para sacar las comillas
+        p[0] = Str(s = p[1][1:-1])
+
     def p_expression_subrutine_call(p):
         "expression : subrutine_call"
         p[0] = -1 # XXX Por el momento se asigna -1 para ver el efecto que tien en las expresiones
