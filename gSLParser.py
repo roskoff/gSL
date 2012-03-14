@@ -9,23 +9,23 @@ from ast import *
 
 def gSLParser(debug):
     DEBUG = debug
-    
+
     # Funciones utilitarias
     def print_debug(mensaje):
         # Para saber el nombre de la funcion en la que estamos
         function_name = inspect.stack()[1][3]
         if DEBUG: print "gSL DEBUG >> Funcion: ", function_name, ">" , mensaje
-    
+
     # Establecemos las precedencias y asociatividad
     precedence = (
         ('left','S_MAS','S_MENOS'),
         ('left','S_MULT','S_DIV'),
         ('right','U_S_MENOS','U_S_MAS'),
         )
-    
+
     # Diccionario que contiene los identificadores que vamos encontrando
     identificadores = { }
-    
+
     def p_start(p):
         """ start : PROGRAMA IDENTIFICADOR body
                   | body
@@ -40,26 +40,25 @@ def gSLParser(debug):
         astree.body = astree.body + tipos_predefinidos
 
         if len(p) == 4:
-            # guardar ID del programa
-            astree.body.append(Expr(value=Str(s=p[2])))
-            # guardar las instrucciones del cuerpo
-            if (p[3] != []):
-                print_debug(p[3])
-                astree.body = astree.body + p[3]
-    
-            print_debug("Nombre del programa: " + p[2])
-            print_debug("Tabla de simbolos: " + str(identificadores))
+            program_id = p[2]
+            program_body = p[3]
+
         elif len (p) == 2:
-    	# guardar las instrucciones del cuerpo
-            if (p[1] != []):
-                astree.body = astree.body + p[1]
-    
-            print_debug("Nombre del programa: sin nombre definido")
-    
+            program_id = 'sin nombre' 
+            program_body = p[1]
+
+        # guardar ID del programa
+        astree.body.append(
+            Expr(value = Str(s = program_id) )
+        )
+        # guardar las instrucciones del cuerpo
+        if (program_body != []):
+            astree.body = astree.body + program_body
+
+
         astree = fix_missing_locations(astree)
         p[0] = astree
-        print_debug(dump(astree))
-    
+
     def p_body(p):
         """ body : declaration_list body_statements
                  | declaration_list body_statements subrutine_list
@@ -68,7 +67,7 @@ def gSLParser(debug):
         p[0] = p[1] + p[2]
         if len(p) == 4:
             p[0] = p[0] + p[3]
-    
+
     def p_declaration_list(p):
         """ declaration_list : declaration_list declaration
                              | declaration
@@ -83,23 +82,16 @@ def gSLParser(debug):
                 p[0] = []
             else:
                 p[0] = p[1]
-        for ass in p[0]:
-            print_debug("declaraciones: "+ dump(ass))
-    
+
     def p_body_statements(p):
         """ body_statements : INICIO statement_list FIN
         """
-        print_debug("Cuerpo principal")
-    
         p[0] = p[2]
-    
+
     def p_statement_list(p):
         """ statement_list : statement_list statement
                            | statement
         """
-        if len(p) == 2:
-            print_debug("Instruccion: " + str(p[1]))
-    
         if len(p) == 3:
             p[0] = p[1] + [p[2]]
         if len(p) == 2:
@@ -107,12 +99,12 @@ def gSLParser(debug):
                 p[0] = []
             else:
                 p[0] = [p[1]]
-    
+
     def p_empty_statement(p):
         """ statement : empty
         """
         #p[0] = p[1] #"asf"
-    
+
     def p_subrutine_list(p):
         """ subrutine_list : subrutine_list subrutine
                            | subrutine
@@ -121,7 +113,7 @@ def gSLParser(debug):
             p[0] = p[1] + [p[2]]
         if len(p) == 2:
             p[0] = [p[1]]
-    
+
     def p_subrutine(p):
         """ subrutine : subrutine_signature declaration_list body_statements
         """
@@ -168,7 +160,7 @@ def gSLParser(debug):
                                | empty
         """
         #p[0] = []
-    
+
     def p_declaration(p):
         """ declaration : VARIABLES variables_item_list
                         | TIPOS tipos_item_list
@@ -178,7 +170,7 @@ def gSLParser(debug):
         if len(p) == 3:
             print_debug("Declaracion: " + p[1])
             p[0] = p[2]
-    
+
     def p_variables_item_list(p):
         """ variables_item_list : variables_item_list variables_item
                                 | variables_item
@@ -188,17 +180,23 @@ def gSLParser(debug):
             p[0] = p[1] + [p[2]]
         if len(p) == 2:
             p[0] = [p[1]]
-    
+
     def p_variables_item(p):
         """ variables_item : id_list DOS_PUNTOS IDENTIFICADOR
         """
         print_debug("Tipo de la variable: (" + p[3] + ")")
-	#XXX Controlar que IDENTIFICADOR sea un tipo de dato
-	id_list = []
-	for var_id in p[1]:
-            id_list.append(Name(id = var_id, ctx = Store()))
-        p[0] = Assign(targets = id_list, value = Name(id = p[3], ctx = Load()))
-    
+        #XXX Controlar que IDENTIFICADOR sea un tipo de dato
+        id_list = []
+        for var_id in p[1]:
+            id_list.append(
+                Name(id = var_id,
+                     ctx = Store())
+            )
+        p[0] = Assign(targets = id_list,
+                      value = Name(id = p[3],
+                                   ctx = Load())
+                     )
+
     def p_tipos_item_list(p):
         """ tipos_item_list : tipos_item_list tipos_item
                             | tipos_item
@@ -244,7 +242,7 @@ def gSLParser(debug):
         """
         #p[0] = []
         pass
-    
+
     def p_statement_assign(p):
         'statement : IDENTIFICADOR S_ASIGNACION expression'
         try:
@@ -254,8 +252,11 @@ def gSLParser(debug):
         except LookupError:
             print_debug("'%s' no está definido'" % p[1])
             raise NameError("'%s' no está definido" % p[1])
-        p[0] = Assign(targets=[Name(id=p[1], ctx=Store())], value=p[3])
-    
+
+        p[0] = Assign(targets = [Name(id=p[1],
+                                      ctx=Store())],
+                      value = p[3])
+
     def p_statement_subrutine_call(p):
         'statement : subrutine_call'
         p[0] = p[1]
@@ -291,27 +292,27 @@ def gSLParser(debug):
                       | expression S_MENOS expression
                       | expression S_MULT expression
                       | expression S_DIV expression'''
-        if p[2] == '+'  : p[0] = BinOp(left=p[1], op=Add(), right=p[3])
-        elif p[2] == '-': p[0] = BinOp(left=p[1], op=Sub(), right=p[3])
-        elif p[2] == '*': p[0] = BinOp(left=p[1], op=Mult(), right=p[3])
-        elif p[2] == '/': p[0] = BinOp(left=p[1], op=Div(), right=p[3])
-    
+        if   p[2] == '+': p[0] = BinOp(left = p[1], op = Add(),  right = p[3])
+        elif p[2] == '-': p[0] = BinOp(left = p[1], op = Sub(),  right = p[3])
+        elif p[2] == '*': p[0] = BinOp(left = p[1], op = Mult(), right = p[3])
+        elif p[2] == '/': p[0] = BinOp(left = p[1], op = Div(),  right = p[3])
+
     def p_expression_uminus(p):
         'expression : S_MENOS expression %prec U_S_MENOS'
-        p[0] = UnaryOp(op=USub(), operand=p[2])
-    
+        p[0] = UnaryOp(op = USub(), operand = p[2])
+
     def p_expression_uplus(p):
         'expression : S_MAS expression %prec U_S_MAS'
-        p[0] = UnaryOp(op=UAdd(), operand=p[2])
-    
+        p[0] = UnaryOp(op = UAdd(), operand = p[2])
+
     def p_expression_group(p):
         'expression : PAREN_I expression PAREN_D'
         p[0] = p[2]
-    
+
     def p_expression_numero(p):
         'expression : NUMERO'
-        p[0] = Num(n=p[1])
-    
+        p[0] = Num(n = p[1])
+
     def p_expression_identificador(p):
         'expression : IDENTIFICADOR'
         try:
@@ -319,15 +320,16 @@ def gSLParser(debug):
         except LookupError:
             print("Identificador no está definido: '%s'" % p[1])
             p[0] = 0
-        p[0] = Name(id=p[1], ctx=Load())
-    
+        p[0] = Name(id = p[1],
+                    ctx=Load())
+
     def p_expression_subrutine_call(p):
         "expression : subrutine_call"
         p[0] = -1 # XXX Por el momento se asigna -1 para ver el efecto que tien en las expresiones
-    
+
     def p_error(t):
         print("Syntax error at '%s'" % t.value)
-    
+
     # Build and return the parser
     from gSLLexer import gSLLexer, tokens
     import ply.yacc as yacc
