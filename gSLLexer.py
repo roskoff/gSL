@@ -7,6 +7,7 @@
 
 tokens = (
     'S_MAS','S_MENOS','S_MULT','S_DIV','S_ASIGNACION',
+    'S_MENOR_QUE', 'S_MAYOR_QUE',
     'PAREN_I','PAREN_D', 'LLAVE_I', 'LLAVE_D', 'CORCH_I', 'CORCH_D',
     'PUNTO', 'COMA', 'PUNTO_Y_COMA', 'DOS_PUNTOS',
     'COMILLA_SIMPLE', 'COMILLA_DOBLE',
@@ -65,6 +66,8 @@ def gSLLexer():
     t_S_MULT         = r'\*'
     t_S_DIV          = r'/'
     t_S_ASIGNACION   = r'='
+    t_S_MENOR_QUE    = r'<'
+    t_S_MAYOR_QUE    = r'>'
     t_PAREN_I        = r'\('
     t_PAREN_D        = r'\)'
     t_LLAVE_I        = r'\{'

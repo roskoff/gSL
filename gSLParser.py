@@ -236,7 +236,7 @@ def gSLParser(debug):
             p[0] = [p[1]]
             identificadores[p[1]] = 0 # Define e inicializa
         print_debug( "Lista IDs: (" + str(p[0]) + ")")
-    
+
     def p_empty(p):
         """ empty :
         """
@@ -253,22 +253,29 @@ def gSLParser(debug):
             print_debug("'%s' no está definido'" % p[1])
             raise NameError("'%s' no está definido" % p[1])
 
-        p[0] = Assign(targets = [Name(id=p[1],
-                                      ctx=Store())],
+        p[0] = Assign(targets = [Name(id=p[1], ctx=Store())],
                       value = p[3])
+
+    def p_statement_if(p):
+        'statement : SI PAREN_I test_expression PAREN_D LLAVE_I statement_list LLAVE_D'
+        p[0] = If(test = p[3], body = p[6], orelse = [])
+
+    def p_statement_if_else(p):
+        'statement : SI PAREN_I test_expression PAREN_D LLAVE_I statement_list SINO statement_list LLAVE_D'
+        p[0] = If(test = p[3], body = p[6], orelse = p[8])
 
     def p_statement_subrutine_call(p):
         'statement : subrutine_call'
         p[0] = p[1]
-    
+
     def p_subrutine_call(p):
         'subrutine_call : IDENTIFICADOR PAREN_I arguments_list PAREN_D'
         print_debug("Llamada a subrutina: " + p[1] + ", argumentos: " + str(p[3]))
-	# Si no se reciben argumentos, pasar lista vacía
-	if p[3] == [None]: p[3] = []
-        p[0] = Expr(value = Call(func = Name(id = p[1], ctx=Load()), 
-                                 args = p[3], 
-                                 keywords=[], 
+        # Si no se reciben argumentos, pasar lista vacía
+        if p[3] == [None]: p[3] = []
+        p[0] = Expr(value = Call(func = Name(id = p[1], ctx=Load()),
+                                 args = p[3],
+                                 keywords=[],
                                  starargs=None, kwargs=None))
         print_debug(dump(p[0]))
     
@@ -286,7 +293,13 @@ def gSLParser(debug):
                      | empty
         """
         p[0] = p[1]
-    
+
+    def p_expression_comp(p):
+        '''test_expression : expression S_MENOR_QUE expression
+                           | expression S_MAYOR_QUE expression'''
+        if   p[2] == '<': p[0] = Compare(left = p[1], ops = [Lt()], comparators = [p[3]])
+        elif p[2] == '>': p[0] = Compare(left = p[1], ops = [Gt()], comparators = [p[3]])
+
     def p_expression_binop(p):
         '''expression : expression S_MAS expression
                       | expression S_MENOS expression
