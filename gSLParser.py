@@ -18,6 +18,10 @@ def gSLParser(debug):
 
     # Establecemos las precedencias y asociatividad
     precedence = (
+        ('left','OR'),
+        ('left','AND'),
+        ('right','NOT'),
+        ('left','S_MENOR_QUE', 'S_MAYOR_QUE', 'S_MENOR_IGUAL_QUE', 'S_MAYOR_IGUAL_QUE', 'S_IGUAL_QUE', 'S_DISTINTO_DE'),
         ('left','S_MAS','S_MENOS'),
         ('left','S_MULT','S_DIV'),
         ('right','U_S_MENOS','U_S_MAS'),
@@ -257,11 +261,11 @@ def gSLParser(debug):
                       value = p[3])
 
     def p_statement_if(p):
-        'statement : SI PAREN_I test_expression PAREN_D LLAVE_I statement_list LLAVE_D'
+        'statement : SI PAREN_I bool_expression PAREN_D LLAVE_I statement_list LLAVE_D'
         p[0] = If(test = p[3], body = p[6], orelse = [])
 
     def p_statement_if_else(p):
-        'statement : SI PAREN_I test_expression PAREN_D LLAVE_I statement_list SINO statement_list LLAVE_D'
+        'statement : SI PAREN_I bool_expression PAREN_D LLAVE_I statement_list SINO statement_list LLAVE_D'
         p[0] = If(test = p[3], body = p[6], orelse = p[8])
 
     def p_statement_subrutine_call(p):
@@ -294,11 +298,42 @@ def gSLParser(debug):
         """
         p[0] = p[1]
 
+    def p_expression_bool(p):
+        '''bool_expression : bool_expression OR bool_expression
+                           | and_expression'''
+        if len(p) == 2:
+            p[0] = p[1]
+        elif len(p) == 4:
+            p[0] = BoolOp(op = Or(), values = [p[1], p[3]])
+
+    def p_expression_and(p):
+        '''and_expression : and_expression AND and_expression
+                          | NOT and_expression
+                          | test_expression'''
+        if len(p) == 4:
+            p[0] = BoolOp(op = And(), values = [p[1], p[3]])
+        elif len(p) == 3:
+            p[0] = UnaryOp(op = Not(), operand = p[2])
+        elif len(p) == 2:
+            p[0] = p[1]
+
     def p_expression_comp(p):
         '''test_expression : expression S_MENOR_QUE expression
-                           | expression S_MAYOR_QUE expression'''
-        if   p[2] == '<': p[0] = Compare(left = p[1], ops = [Lt()], comparators = [p[3]])
-        elif p[2] == '>': p[0] = Compare(left = p[1], ops = [Gt()], comparators = [p[3]])
+                           | expression S_MAYOR_QUE expression
+                           | expression S_MENOR_IGUAL_QUE expression
+                           | expression S_MAYOR_IGUAL_QUE expression
+                           | expression S_IGUAL_QUE expression
+                           | expression S_DISTINTO_DE expression'''
+        if   p[2] == '<' : p[0] = Compare(left = p[1], ops = [Lt()], comparators = [p[3]])
+        elif p[2] == '>' : p[0] = Compare(left = p[1], ops = [Gt()], comparators = [p[3]])
+        elif p[2] == '<=': p[0] = Compare(left = p[1], ops = [LtE()], comparators = [p[3]])
+        elif p[2] == '>=': p[0] = Compare(left = p[1], ops = [GtE()], comparators = [p[3]])
+        elif p[2] == '==': p[0] = Compare(left = p[1], ops = [Eq()], comparators = [p[3]])
+        elif p[2] == '<>': p[0] = Compare(left = p[1], ops = [NotEq()], comparators = [p[3]])
+
+    def p_expression_test_exp_group(p):
+        '''test_expression : PAREN_I bool_expression PAREN_D'''
+        p[0] = p[2]
 
     def p_expression_binop(p):
         '''expression : expression S_MAS expression
