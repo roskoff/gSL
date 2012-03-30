@@ -263,6 +263,7 @@ def gSLParser(debug):
     def p_statement_if(p):
         'statement : SI PAREN_I bool_expression PAREN_D LLAVE_I statement_list LLAVE_D'
         p[0] = If(test = p[3], body = p[6], orelse = [])
+        print_debug("SI: (" + str(p[3]) +")")
 
     def p_statement_if_else(p):
         'statement : SI PAREN_I bool_expression PAREN_D LLAVE_I statement_list SINO statement_list LLAVE_D'
@@ -303,6 +304,7 @@ def gSLParser(debug):
                            | and_expression'''
         if len(p) == 2:
             p[0] = p[1]
+            print_debug("bool_expression: (" + str(p[0]) +")")
         elif len(p) == 4:
             p[0] = BoolOp(op = Or(), values = [p[1], p[3]])
 
@@ -316,6 +318,7 @@ def gSLParser(debug):
             p[0] = UnaryOp(op = Not(), operand = p[2])
         elif len(p) == 2:
             p[0] = p[1]
+            print_debug("and_expression: (" + str(p[1]) +")")
 
     def p_expression_comp(p):
         '''test_expression : expression S_MENOR_QUE expression
@@ -376,6 +379,7 @@ def gSLParser(debug):
         # Tomamos desde el segundo caracter hasta el penúltimo
         # para sacar las comillas
         p[0] = Str(s = p[1][1:-1])
+        print_debug("Cadena: '%s'" % p[1])
 
     def p_expression_subrutine_call(p):
         "expression : subrutine_call"

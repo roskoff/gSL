@@ -106,7 +106,7 @@ def gSLLexer():
         return t
 
     def t_CADENA(t):
-        r'(\".*\")|(\'.*\')'
+        r'(\".*?\")|(\'.*?\')'
         return t
 
     # Definimos esta regla para poder controlar los numeros de lineas 
