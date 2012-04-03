@@ -92,15 +92,34 @@ def gSLParser(debug):
         """
         p[0] = p[2]
 
-    def p_statement_list(p):
-        """ statement_list : statement_list statement
-                           | statement
+    def p_statement_list_compund(p):
+        """ statement_list : statement_list multiple_statement
         """
-        if len(p) == 3:
+        #""" statement_list : statement_list statement
+        #                   | statement
+        # p_statement_list se separa en 2 (compound y simple) para
+        # simplificar la funcion
+
+        # Si multiple_statement resulta una lista, concatenar listas,
+        # si es un nodo, agregarlo como elemento.
+        if isinstance(p[2], list):
+            p[0] = p[1] + p[2]
+        else:
             p[0] = p[1] + [p[2]]
-        if len(p) == 2:
-            if p[1] == None or p[1] == []:
-                p[0] = []
+
+    def p_statement_list_simple(p):
+        """ statement_list : multiple_statement
+        """
+        # p_statement_list se separa en 2 (compound y simple) para
+        # simplificar la funcion
+
+        # Si multiple_statement resulta una lista, concatenar listas,
+        # si es un nodo, agregarlo como elemento.
+        if p[1] == None or p[1] == []:
+            p[0] = []
+        else:
+            if isinstance(p[1], list):
+                p[0] = p[1]
             else:
                 p[0] = [p[1]]
 
@@ -108,6 +127,15 @@ def gSLParser(debug):
         """ statement : empty
         """
         #p[0] = p[1] #"asf"
+
+    def p_multiple_statement(p):
+        """ multiple_statement : multiple_statement PUNTO_Y_COMA statement
+                               | statement
+        """
+        if len(p) == 4:
+            p[0] = p[1] + [p[3]]
+        elif len(p) == 2:
+            p[0] = [p[1]]
 
     def p_subrutine_list(p):
         """ subrutine_list : subrutine_list subrutine
