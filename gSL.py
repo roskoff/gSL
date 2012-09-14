@@ -3,7 +3,7 @@ import sys
 import argparse
 from gSLParser import gSLParser
 
-# Esta función retorna todas las funciones predeterminadas en SL, el 
+# Esta función retorna todas las funciones predeterminadas en SL, el
 # conjunto de todas ellas sería nuestro RunTime Library (RTL)
 def getRTL():
     from ast import FunctionDef, For, Print, Name, Load, Store, arguments
@@ -19,16 +19,16 @@ def getRTL():
     #         print arg,
     #     print
     #
-    functions.append(FunctionDef(name = 'imprimir', 
+    functions.append(FunctionDef(name = 'imprimir',
                                 args = arguments(args   = [],
-                                                 vararg = 'args', 
+                                                 vararg = 'args',
                                                  kwarg  = None,
                                                  defaults = []),
-                                body = [For(target = Name(id = 'arg', ctx=Store()), 
-                                            iter   = Name(id = 'args', ctx=Load()), 
+                                body = [For(target = Name(id = 'arg', ctx=Store()),
+                                            iter   = Name(id = 'args', ctx=Load()),
                                             body   = [Print(dest = None, values = [Name(id = 'arg', ctx=Load())], nl=False)],
-                                            orelse=[]), 
-                                        Print(dest=None, values=[], nl=True)], 
+                                            orelse=[]),
+                                        Print(dest=None, values=[], nl=True)],
                                 decorator_list=[]))
     return functions
 

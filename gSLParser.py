@@ -48,7 +48,7 @@ def gSLParser(debug):
             program_body = p[3]
 
         elif len (p) == 2:
-            program_id = 'sin nombre' 
+            program_id = 'sin nombre'
             program_body = p[1]
 
         # guardar ID del programa
