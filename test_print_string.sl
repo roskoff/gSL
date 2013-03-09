@@ -5,4 +5,5 @@ inicio
    s = "Hola Mundo!"
 
    imprimir(s)
+   imprimir("Que tal")
 fin

@@ -2,7 +2,7 @@ var
   a : cadena
   b : cadena
 inicio
-   si (2 > 1){
+   si (2 == 1){
       imprimir ("Hola Mundo!")
    sino
       imprimir ("Adios!")
@@ -22,4 +22,6 @@ inicio
    a = "a"
    b = "b"
    si (a < b) { imprimir(" a < b ") }
+
+   b = a
 fin

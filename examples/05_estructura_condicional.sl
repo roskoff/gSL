@@ -3,7 +3,7 @@ var
    n : numerico
 inicio
 
-   n = 5
+   n = 25
    si (n == 25) {
       imprimir("n cuadrado")  // No imprime
    }
