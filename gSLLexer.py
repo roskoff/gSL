@@ -95,7 +95,7 @@ def gSLLexer():
         try:
             t.value = float(t.value)
         except ValueError:
-            print "Linea %d: Numero %s es demasiado grande!" % (t.lineno, t.value)
+            print("Linea %d: Numero %s es demasiado grande!" % (t.lineno, t.value))
             t.value = 0
         return t
 
@@ -119,7 +119,7 @@ def gSLLexer():
     
     # Regla para manejar errores
     def t_error(t):
-        print("Caracter ilegal: '%s'" % t.value[0])
+        print(("Caracter ilegal: '%s'" % t.value[0]))
         t.lexer.skip(1)
         
     # Build the lexer

@@ -1,6 +1,6 @@
 import unittest
 try:
-    import StringIO
+    import io
 except ImportError:
     import io as StringIO
 
@@ -31,8 +31,8 @@ def run_import(module):
 
 class TestAST(unittest.TestCase):
     def setUp(self):
-        sys.stderr = StringIO.StringIO()
-        sys.stdout = StringIO.StringIO()
+        sys.stderr = io.StringIO()
+        sys.stdout = io.StringIO()
     def tearDown(self):
         sys.stderr = sys.__stderr__
         sys.stdout = sys.__stdout__

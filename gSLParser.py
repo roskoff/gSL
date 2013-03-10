@@ -14,7 +14,7 @@ def gSLParser(debug):
     def print_debug(mensaje):
         # Para saber el nombre de la funcion en la que estamos
         function_name = inspect.stack()[1][3]
-        if DEBUG: print "gSL DEBUG >> Funcion: ", function_name, ">" , mensaje
+        if DEBUG: print("gSL DEBUG >> Funcion: ", function_name, ">" , mensaje)
 
     # Establecemos las precedencias y asociatividad
     precedence = (
@@ -397,7 +397,7 @@ def gSLParser(debug):
         try:
             p[0] = identificadores[p[1]]
         except LookupError:
-            print("Identificador no está definido: '%s'" % p[1])
+            print(("Identificador no está definido: '%s'" % p[1]))
             p[0] = 0
         p[0] = Name(id = p[1],
                     ctx=Load())
@@ -414,7 +414,7 @@ def gSLParser(debug):
         p[0] = -1 # XXX Por el momento se asigna -1 para ver el efecto que tien en las expresiones
 
     def p_error(t):
-        print("Syntax error at '%s'" % t.value)
+        print(("Syntax error at '%s'" % t.value))
 
     # Build and return the parser
     from gSLLexer import gSLLexer, tokens

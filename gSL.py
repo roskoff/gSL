@@ -6,7 +6,8 @@ from gSLParser import gSLParser
 # Esta función retorna todas las funciones predeterminadas en SL, el
 # conjunto de todas ellas sería nuestro RunTime Library (RTL)
 def getRTL():
-    from ast import FunctionDef, For, Print, Name, Load, Store, arguments
+    from ast import FunctionDef, For, Name
+    from ast import Load, Store, arguments, Expr, Call, Str, keyword
     functions = []
 
     # imprimir(...)
@@ -22,14 +23,27 @@ def getRTL():
     functions.append(FunctionDef(name = 'imprimir',
                                 args = arguments(args   = [],
                                                  vararg = 'args',
-                                                 kwarg  = None,
-                                                 defaults = []),
+                                                 varargannotation = None,
+                                                 kwonlyargs = [],
+                                                 kwarg = None,
+                                                 kwargannotation = None,
+                                                 defaults = [],
+                                                 kw_defaults = []),
                                 body = [For(target = Name(id = 'arg', ctx=Store()),
                                             iter   = Name(id = 'args', ctx=Load()),
-                                            body   = [Print(dest = None, values = [Name(id = 'arg', ctx=Load())], nl=False)],
-                                            orelse=[]),
-                                        Print(dest=None, values=[], nl=True)],
-                                decorator_list=[]))
+                                            body   = [Expr(value = Call(func = Name(id = 'print', ctx = Load()),
+                                                                        args = [Name(id = 'arg', ctx = Load())],
+                                                                        keywords = [keyword(arg = 'end', value = Str(s = ' '))],
+                                                                        stararg = None,
+                                                                        kwargs = None))],
+                                            orelse = []),
+                                        Expr(value = Call(func = Name(id = 'print', ctx = Load()),
+                                                                        args = [],
+                                                                        keywords = [],
+                                                                        stararg = None,
+                                                                        kwargs = None))],
+                                        decorator_list = [],
+                                        returns = None))
     return functions
 
 if __name__ == "__main__":
@@ -53,13 +67,13 @@ if __name__ == "__main__":
     # Imprimir opcionalmente el AST (sin el RTL)
     if argumentos.print_ast:
         from util import formatTree
-        print formatTree(ast.dump(tree, True, False))
+        print(formatTree(ast.dump(tree, True, False)))
 
     # Agregar funciones predeterminadas
     tree.body = getRTL() + tree.body
     tree = ast.fix_missing_locations(tree)
 
     # Compilamos y ejecutamos con el compilador de Python
-    exec compile(tree, "<gsl_source_code>", "exec")
+    exec(compile(tree, "<gsl_source_code>", "exec"))
 
 

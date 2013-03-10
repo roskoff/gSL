@@ -9,7 +9,7 @@ fin
 
 gParser = gSLParser(debug = False)
 tree = gParser.parse(source_code, debug = 0)
-print dump(tree)
+print(dump(tree))
 
 #exec compile(tree, "<gsl_source_code>", "exec")
 
