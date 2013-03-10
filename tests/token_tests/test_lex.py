@@ -41,10 +41,6 @@ class TestLexReservedWords(unittest.TestCase):
 
     def test_lex_01_reserved_words(self):
         gLexer = gSLLexer()
-        #lex.runmain(data = "and archivo caso const constantes desde eval fin\n"
-                           #"hasta inicio lib libext matriz mientras not or\n" 
-                           #"paso programa ref registro repetir retorna si\n"
-                           #"sino sub subrutina tipos var variables vector\n")
         run_import("lex_01_reserved_words")
         result = sys.stdout.getvalue()
         self.assert_(check_expected(result,
@@ -91,7 +87,7 @@ class TestLexReservedWords(unittest.TestCase):
                                     "(DOS_PUNTOS,':',2,5)\n"
                                     "(IDENTIFICADOR,'numerico',2,6)\n")
                     )
-    
+
     def test_lex_03_symbols(self):
         run_import("lex_03_symbols")
         result = sys.stdout.getvalue()
@@ -115,13 +111,13 @@ class TestLexReservedWords(unittest.TestCase):
                                     "(COMILLA_SIMPLE,\"'\",1,15)\n"
                                     "(COMILLA_DOBLE,'\"',1,16)\n")
                     )
-    
+
     def test_lex_04_multiline_commments(self):
         run_import("lex_04_multiline_comments")
         result = sys.stdout.getvalue()
         self.assert_(check_expected(result, ""))
         #self.assertEquals(result, "")
-    
+
     def test_lex_05_singleline_commments(self):
         run_import("lex_05_singleline_comments")
         result = sys.stdout.getvalue()
@@ -131,8 +127,8 @@ class TestLexReservedWords(unittest.TestCase):
     def test_lex_06_numbers(self):
         run_import("lex_06_numbers")
         result = sys.stdout.getvalue()
-        self.assert_(check_expected(result, 
-        #self.assertEquals(result, 
+        self.assert_(check_expected(result,
+        #self.assertEquals(result,
                                     "(NUMERO,0.0,1,0)\n"
                                     "(NUMERO,1.0,2,2)\n"
                                     "(NUMERO,5.25,3,6)\n"
@@ -149,40 +145,46 @@ class TestLexReservedWords(unittest.TestCase):
                                     "(NUMERO,0.25,14,85)\n"
                                     "(NUMERO,0.25,15,94)\n")
                     )
-    
+
     def test_lex_07_id(self):
         run_import("lex_07_id")
         result = sys.stdout.getvalue()
-        self.assert_(check_expected(result, 
-        #self.assertEquals(result, 
-                                    "(IDENTIFICADOR,'variable',1,0)\n"
-                                    "(IDENTIFICADOR,'hasta_desde',2,9)\n"
-                                    "(IDENTIFICADOR,'code',3,21)\n"
-                                    "(IDENTIFICADOR,'numerico',4,26)\n"
-                                    "(IDENTIFICADOR,'FALSE',5,35)\n"
-                                    "(IDENTIFICADOR,'NO',6,41)\n"
-                                    "(IDENTIFICADOR,'imprimir',7,44)\n"
-                                    "(IDENTIFICADOR,'PROGRAMA',8,53)\n"
-                                    "(IDENTIFICADOR,'unnombreconmaxtreintaydosletras',9,62)\n"
-                                    "(IDENTIFICADOR,'unnombreconmaxtreintaydosletras',10,94)\n"
-                                    "(IDENTIFICADOR,'_underscore',11,140)\n"
-                                    "(IDENTIFICADOR,'\\xc3\\xb1emby',12,152)\n"
-                                    "(IDENTIFICADOR,'\\xc3\\x91emby',13,159)\n"
-                                    "(IDENTIFICADOR,'letra_e\\xc3\\xb1e',14,166)\n"
-                                    "(IDENTIFICADOR,'A\\xc3\\x91O',15,177)\n"
-                                    "(IDENTIFICADOR,'i',16,182)\n")
-                    )
+        expected = """(IDENTIFICADOR,'variable',1,0)
+(IDENTIFICADOR,'hasta_desde',2,9)
+(IDENTIFICADOR,'code',3,21)
+(IDENTIFICADOR,'numerico',4,26)
+(IDENTIFICADOR,'FALSE',5,35)
+(IDENTIFICADOR,'NO',6,41)
+(IDENTIFICADOR,'imprimir',7,44)
+(IDENTIFICADOR,'PROGRAMA',8,53)
+(IDENTIFICADOR,'unnombreconmaxtreintaydosletras',9,62)
+(IDENTIFICADOR,'unnombreconmaxtreintaydosletras',10,94)
+(IDENTIFICADOR,'_underscore',11,140)
+(IDENTIFICADOR,'ñemby',12,152)
+(IDENTIFICADOR,'Ñemby',13,158)
+(IDENTIFICADOR,'letra_eñe',14,164)
+(IDENTIFICADOR,'AÑO',15,174)
+(IDENTIFICADOR,'i',16,178)
+"""
+        #print("Result  : \n" + result, file = sys.__stderr__)
+        #print("Expected: \n" + expected, file = sys.__stderr__)
+        #self.assert_(check_expected(result,
+        self.assertEquals(result, expected)
+                    #)
 
     def test_lex_08_strings(self):
         run_import("lex_08_strings")
         result = sys.stdout.getvalue()
-        self.assert_(check_expected(result,
-        #self.assertEquals(result, 
-                                    "(CADENA,'\"texto literal\"',1,0)\n"
-                                    "(CADENA,\"'comillas simples'\",2,16)\n"
-                                    "(CADENA,'\"La dama exclam\\xc3\\xb3: \\\'Oh! D\\xc3\\xa9jenlo ir!\\\'\"',3,35)\n"
-                                    "(CADENA,'\\\'esta es una \"cita\"\\\'',4,74)\n")
-                    )
+        expected = """(CADENA,'"texto literal"',1,0)
+(CADENA,"'comillas simples'",2,16)
+(CADENA,'"La dama exclamó: \\'Oh! Déjenlo ir!\\'"',3,35)
+(CADENA,'\\'esta es una "cita"\\'',4,72)
+"""
+        #print("Result  : \n" + result, file = sys.__stderr__)
+        #print("Expected: \n" + expected, file = sys.__stderr__)
+        #self.assert_(check_expected(result,
+        self.assertEquals(result, expected)
+                    #)
 
     def test_lex_09_ilegal_chars(self):
         run_import("lex_09_ilegal_chars")
