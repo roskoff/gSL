@@ -42,7 +42,7 @@ class TestAST(unittest.TestCase):
         result = sys.stdout.getvalue()
         #self.assert_(check_expected(result,
         self.assertEquals(result,
-                                    "Module(body=[Assign(targets=[Name(id='cadena', ctx=Store())], value=Str(s='')), Assign(targets=[Name(id='numerico', ctx=Store())], value=Num(n=0)), Assign(targets=[Name(id='logico', ctx=Store())], value=Name(id='True', ctx=Load()))])\n")
+                                    "Module(body=[Assign(targets=[Name(id='cadena', ctx=Store())], value=Str(s='')), Assign(targets=[Name(id='numerico', ctx=Store())], value=Num(n=0)), Assign(targets=[Name(id='logico', ctx=Store())], value=Name(id='True', ctx=Load())), Expr(value=Str(s='sin nombre'))])\n")
 #                     )
 
     def test_syn_02_empty_named_program(self):
