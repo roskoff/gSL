@@ -151,13 +151,13 @@ def gSLParser(debug):
         """
         # Asignar al ambito secundario, registrar signature
         #p[0] = []
-    
+
     def p_subrutine_signature(p):
         """ subrutine_signature : function_signature
                                 | procedure_signature
         """
         #p[0] = []
-    
+
     def p_function_signature(p):
         """ function_signature : SUBRUTINA IDENTIFICADOR PAREN_I parameters_list PAREN_D RETORNA IDENTIFICADOR
         """
@@ -166,7 +166,7 @@ def gSLParser(debug):
         print_debug("Funcion creada: " + p[2])
         print_debug("Funcion retorna: " + p[6])
         #p[0] = []
-    
+
     def p_procedure_signature(p):
         """ procedure_signature : SUBRUTINA IDENTIFICADOR PAREN_I parameters_list PAREN_D
         """
@@ -174,19 +174,19 @@ def gSLParser(debug):
         print_debug("Parametros: " + str(p[4]))
         # XXX Falta lista de parametros
         #p[0] = []
-    
+
     def p_parameters_list(p):
         """ parameters_list : parameters_list PUNTO_Y_COMA parameters_item
                             | parameters_item
         """
         #p[0] = []
-    
+
     def p_parameters_item(p):
         """ parameters_item : reference_optional variables_item
                             | empty
-        """ 
+        """
         #p[0] = []
-    
+
     def p_reference_optional(p):
         """ reference_optional : REF
                                | empty
@@ -234,21 +234,21 @@ def gSLParser(debug):
                             | tipos_item
         """
         #p[0] = []
-    
+
     def p_tipos_item(p):
         """ tipos_item : IDENTIFICADOR DOS_PUNTOS IDENTIFICADOR
         """
         print_debug("Tipo definido por usuario: (" + p[1] +":"+ p[3] + ")")
         #p[0] = []
-    
+
     def p_constantes_item_list(p):
         """ constantes_item_list : constantes_item_list constantes_item
                                  | constantes_item
         """
         # Agregar a la tabla de simbolos, inicializar
-    
+
     def p_constantes_item(p):
-        """ constantes_item : IDENTIFICADOR S_ASIGNACION IDENTIFICADOR 
+        """ constantes_item : IDENTIFICADOR S_ASIGNACION IDENTIFICADOR
                             | IDENTIFICADOR S_ASIGNACION NUMERO
                             | IDENTIFICADOR S_ASIGNACION CADENA
         """
@@ -257,7 +257,7 @@ def gSLParser(debug):
         # tales como TRUE y FALSE
         print_debug("Constante definida por usuario: (" + str(p[1]) +":"+ str(p[3]) + ")")
         #p[0] = []
-    
+
     def p_id_list(p):
         """ id_list : id_list COMA IDENTIFICADOR
                     | IDENTIFICADOR
@@ -297,6 +297,10 @@ def gSLParser(debug):
         'statement : SI PAREN_I bool_expression PAREN_D LLAVE_I statement_list SINO statement_list LLAVE_D'
         p[0] = If(test = p[3], body = p[6], orelse = p[8])
 
+    def p_statement_while(p):
+        'statement : MIENTRAS PAREN_I bool_expression PAREN_D LLAVE_I statement_list LLAVE_D'
+        p[0] = While(test = p[3], body = p[6], orelse = [])
+
     def p_statement_subrutine_call(p):
         'statement : subrutine_call'
         p[0] = p[1]
@@ -311,7 +315,7 @@ def gSLParser(debug):
                                  keywords=[],
                                  starargs=None, kwargs=None))
         print_debug(dump(p[0]))
-    
+
     def p_arguments_list(p):
         """arguments_list : arguments_list COMA argument
                           | argument
@@ -320,7 +324,7 @@ def gSLParser(debug):
             p[0] = p[1] + [p[3]]
         elif len(p) == 2:
             p[0] = [p[1]]
-    
+
     def p_argument(p):
         """ argument : expression
                      | empty
