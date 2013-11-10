@@ -301,6 +301,21 @@ def gSLParser(debug):
         'statement : MIENTRAS PAREN_I bool_expression PAREN_D LLAVE_I statement_list LLAVE_D'
         p[0] = While(test = p[3], body = p[6], orelse = [])
 
+    def p_statement_repeat_until(p):
+        'statement : REPETIR statement_list HASTA PAREN_I bool_expression PAREN_D'
+
+        # Se utiliza la siguiente construcción para simular
+        # la estructura repetir ... hasta:
+        #  while True:
+        #    do_something()
+        #    if condition():
+        #      break
+        # Tomado de: http://bit.ly/1fu0Qfc
+        end_condition = [If(test = p[5], body = [Break()], orelse = [])]
+        p[0] = While(test = Name(id='True', ctx=Load()),
+                 body = p[2] + end_condition,
+                 orelse = [])
+
     def p_statement_subrutine_call(p):
         'statement : subrutine_call'
         p[0] = p[1]
