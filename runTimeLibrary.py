@@ -8,7 +8,7 @@ def getFunctions():
 
     # imprimir(...)
     # Recibe cero o mas expresiones separadas por coma y las
-    # imprme en pantalla separadas por un espacio
+    # imprime en pantalla separadas por un espacio
     #
     # Codigo Python
     # def imprimir(*args):
