@@ -337,8 +337,10 @@ def gSLParser(debug):
         """
         if len(p) == 4:
             p[0] = p[1] + [p[3]]
+            print_debug(dump(p[3]))
         elif len(p) == 2:
             p[0] = [p[1]]
+            print_debug(dump(p[1]))
 
     def p_argument(p):
         """ argument : expression
