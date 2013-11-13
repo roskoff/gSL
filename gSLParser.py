@@ -266,8 +266,8 @@ def gSLParser(debug):
             p[0] = [p[3]] + p[1]
         elif len(p) == 2:
             p[0] = [p[1]]
-            identificadores[p[1]] = 0 # Define e inicializa
-        print_debug( "Lista IDs: (" + str(p[0]) + ")")
+            identificadores[p[1]] = None # Define e inicializa
+        print_debug( "Lista IDs: (" + str(identificadores) + ")")
 
     def p_empty(p):
         """ empty :
@@ -325,11 +325,28 @@ def gSLParser(debug):
         print_debug("Llamada a subrutina: " + p[1] + ", argumentos: " + str(p[3]))
         # Si no se reciben argumentos, pasar lista vacía
         if p[3] == [None]: p[3] = []
-        p[0] = Expr(value = Call(func = Name(id = p[1], ctx=Load()),
+
+        if p[1] == 'leer':
+            p[0] = generarLlamadaLeer(p[3])
+        else:
+            p[0] = Expr(value = Call(func = Name(id = p[1], ctx=Load()),
                                  args = p[3],
                                  keywords=[],
                                  starargs=None, kwargs=None))
         print_debug(dump(p[0]))
+
+    def generarLlamadaLeer(keyword_args):
+        kargs = []
+        vargs = []
+        for i in keyword_args:
+            kargs.append(Str(s = i.id))
+            vargs.append(Name(id = i.id, ctx = Load()))
+        fcall = Expr(value = Call(func = Name(id = 'leer', ctx=Load()),
+                                  args = [Dict(keys=kargs, values=vargs)],
+                                  keywords = [],
+                                  starargs = None,
+                                  kwargs   = None))
+        return fcall
 
     def p_arguments_list(p):
         """arguments_list : arguments_list COMA argument

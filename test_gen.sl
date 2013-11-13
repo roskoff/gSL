@@ -1,9 +1,11 @@
 var 
-a : numerico
-b : numerico
+    c : numerico
 inicio
-   a = (1 + 2); b = (2 / 2) + (4 / 2)
-   imprimir (a, b); imprimir(b,a); imprimir(b,a,b,a)
-   a = 100
-   imprimir("a: ", a)
+    c = 10
+    leer(c)
+    imprimir("Cuenta regresiva:")
+    repetir
+       imprimir(c) 
+       c = c - 1
+    hasta (c < 0)
 fin
