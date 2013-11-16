@@ -1,11 +1,8 @@
 var 
-    c : numerico
+    a : cadena
 inicio
-    c = 10
-    leer(c)
-    imprimir("Cuenta regresiva:")
-    repetir
-       imprimir(c) 
-       c = c - 1
-    hasta (c < 0)
+    imprimir("Introduzca texto: ")
+    leer(a)
+    imprimir("")
+    imprimir("Texto ingresado: ", a)
 fin
