@@ -1,8 +1,8 @@
 var 
-    a : cadena
+    n : numerico
+    s : cadena
 inicio
-    imprimir("Introduzca texto: ")
-    leer(a)
+    leer(n, s)
     imprimir("")
-    imprimir("Texto ingresado: ", a)
+    imprimir("Valores ingresados: ", n, s)
 fin

@@ -335,30 +335,29 @@ def gSLParser(debug):
                                  starargs=None, kwargs=None))
         print_debug(dump(p[0]))
 
-    # leer() espera un diccionario con los nombres de las variables que
-    # tiene que modificar "por referencia", para cada nombre se pasa también
-    # su valor y su tipo. Por ejemplo, para 'a' del tipo cadena y 'b' del
-    # tipo numerico la llamada leer(a, b) se traducirá a algo como:
-    # leer({'a': {'valor': a,
-    #             'tipo': type(a)},
-    #       'b': {'valor': b,
-    #             'tipo': type(b)}
-    #      })
+    # leer() espera una lista de diccionarios con: el nombre de las variable que
+    # tiene que modificar "por referencia", su valor y su tipo.
+    # Por ejemplo, para 'a' del tipo cadena y 'b' del tipo numerico la llamada
+    # leer(a, b) se traducirá a algo como:
+    # leer([{'nombre':'a', 'valor': a, 'tipo': type(a)},
+    #       {'nombre':'b', 'valor': b, 'tipo': type(b)}
+    #      ])
     def generarLlamadaLeer(keyword_args):
-        kargs = []
         vargs = []
         for i in keyword_args:
-            kargs.append(Str(s = i.id))
-            vargs.append(Dict(keys   = [Str(s = 'valor'), Str(s = 'tipo')],
-                               values = [Name(id = i.id, ctx = Load()),
-                                         Call(func = Name(id = 'type', ctx = Load()),
-                                              args = [Name(id = i.id, ctx = Load())],
-                                              keywords = [],
-                                              starargs = None,
-                                              kwargs   = None)]))
+            vargs.append(Dict(keys   = [Str(s = 'nombre'),
+                                        Str(s = 'valor'),
+                                        Str(s = 'tipo')],
+                              values = [Str(s = i.id),
+                                        Name(id = i.id, ctx = Load()),
+                                        Call(func = Name(id = 'type', ctx = Load()),
+                                             args = [Name(id = i.id, ctx = Load())],
+                                             keywords = [],
+                                             starargs = None,
+                                             kwargs   = None)]))
 
         fcall = Expr(value = Call(func = Name(id = 'leer', ctx=Load()),
-                                  args = [Dict(keys=kargs, values=vargs)],
+                                  args = [List(elts = vargs, ctx = Load())],
                                   keywords = [],
                                   starargs = None,
                                   kwargs   = None))
