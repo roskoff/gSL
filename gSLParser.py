@@ -28,12 +28,21 @@ def gSLParser(debug):
         )
 
     # Diccionario que contiene los identificadores que vamos encontrando
-    identificadores = { }
+    #identificadores = { }
+    # Tipos predefinidos
+    type_cadena_node   = Str(s = '')
+    type_numerico_node = Num(n = 0)
+    type_logico_node   = Name( id = 'True', ctx = Load())
+    # Lista de tripleta que contiene (id, AST, valor)
+    identificadores = [("cadena", type_cadena_node, None),
+                       ("numerico", type_numerico_node, None),
+                       ("logico", type_logico_node, None)]
 
     def p_start(p):
         """ start : PROGRAMA IDENTIFICADOR body
                   | body
         """
+        print_debug("---------- Inicio del parser ----------")
         astree = Module( body = [])
         # Antes que nada se agregan los tipos de datos predefinidos
         tipos_predefinidos = [
@@ -62,6 +71,7 @@ def gSLParser(debug):
 
         astree = fix_missing_locations(astree)
         p[0] = astree
+        print_debug("---------- Fin de parser ----------")
 
     def p_body(p):
         """ body : declaration_list body_statements
@@ -123,9 +133,9 @@ def gSLParser(debug):
             else:
                 p[0] = [p[1]]
 
-    def p_empty_statement(p):
-        """ statement : empty
-        """
+#    def p_empty_statement(p):
+#        """ statement : empty
+#        """
         #p[0] = p[1] #"asf"
 
     def p_multiple_statement(p):
@@ -135,7 +145,13 @@ def gSLParser(debug):
         if len(p) == 4:
             p[0] = p[1] + [p[3]]
         elif len(p) == 2:
-            p[0] = [p[1]]
+            # Para los casos en que statement retoren una lista de nodos AST,
+            # por ejemplo: p_statement_for
+            print_debug("Statement == List? " + str(isinstance(p[1], list)))
+            if isinstance(p[1], list):
+                p[0] = p[1]
+            else:
+                p[0] = [p[1]]
 
     def p_subrutine_list(p):
         """ subrutine_list : subrutine_list subrutine
@@ -216,18 +232,17 @@ def gSLParser(debug):
     def p_variables_item(p):
         """ variables_item : id_list DOS_PUNTOS IDENTIFICADOR
         """
-        print_debug("Tipo de la variable: (" + p[3] + ")")
+        print_debug("Lista IDs: " + str(p[1]))
+        print_debug("Tipo asignado: (" + p[3] + ")")
         #XXX Controlar que IDENTIFICADOR sea un tipo de dato
+        type_node = Name(id = p[3], ctx = Load())
         id_list = []
         for var_id in p[1]:
-            id_list.append(
-                Name(id = var_id,
-                     ctx = Store())
-            )
-        p[0] = Assign(targets = id_list,
-                      value = Name(id = p[3],
-                                   ctx = Load())
-                     )
+            print_debug("ID: " + var_id)
+            id_list.append(Name(id = var_id, ctx = Store()))
+            v = lookupIdentificador(var_id)
+            identificadores.append((var_id, type_node, None))
+        p[0] = Assign(targets = id_list, value = type_node)
 
     def p_tipos_item_list(p):
         """ tipos_item_list : tipos_item_list tipos_item
@@ -266,8 +281,9 @@ def gSLParser(debug):
             p[0] = [p[3]] + p[1]
         elif len(p) == 2:
             p[0] = [p[1]]
-            identificadores[p[1]] = None # Define e inicializa
-        print_debug( "Lista IDs: (" + str(identificadores) + ")")
+            #identificadores[p[1]] = None # Define e inicializa
+            identificadores.append((p[1], None, None)) # Define
+        #print_debug( "Lista IDs: (" + str(identificadores) + ")")
 
     def p_empty(p):
         """ empty :
@@ -278,8 +294,12 @@ def gSLParser(debug):
     def p_statement_assign(p):
         'statement : IDENTIFICADOR S_ASIGNACION expression'
         try:
-            p[0] = identificadores[p[1]] # El ID debe estar previamente definido
-            identificadores[p[1]] = p[3]
+            #p[0] = identificadores[p[1]] # El ID debe estar previamente definido
+            #identificadores[p[1]] = p[3]
+            variable = lookupIdentificador(p[1]) # El ID debe estar previamente definido
+            p[0] = variable[1] # (id, AST, valor), Asignar AST
+            # Actualizar el AST y reinsertar en identificadores
+            identificadores.append((p[1], p[3], None))
             print_debug(p[1] + ' <- ' + str(p[3]))
         except LookupError:
             print_debug("'%s' no está definido'" % p[1])
@@ -287,6 +307,14 @@ def gSLParser(debug):
 
         p[0] = Assign(targets = [Name(id=p[1], ctx=Store())],
                       value = p[3])
+
+    def lookupIdentificador(identificador):
+        print_debug("ID buscado: " + identificador)
+        for i, v in enumerate(identificadores):
+            print_debug("TS - ID: " + str(v))
+            if v[0] == identificador:
+                return identificadores.pop(i)
+        raise LookupError()
 
     def p_statement_if(p):
         'statement : SI PAREN_I bool_expression PAREN_D LLAVE_I statement_list LLAVE_D'
@@ -296,6 +324,40 @@ def gSLParser(debug):
     def p_statement_if_else(p):
         'statement : SI PAREN_I bool_expression PAREN_D LLAVE_I statement_list SINO statement_list LLAVE_D'
         p[0] = If(test = p[3], body = p[6], orelse = p[8])
+
+    def p_statement_eval(p):
+        '''statement : EVAL LLAVE_I lista_casos caso_sino LLAVE_D
+                     | EVAL LLAVE_I lista_casos LLAVE_D'''
+        #p[3].body = p[4]
+        if len(p) == 6:
+            print_debug("CASO SINO")
+            p[3].orelse = p[4]
+        p[0] = p[3]
+
+    def p_lista_casos(p):
+        '''lista_casos : caso lista_casos
+                       | caso '''
+                       #|  '''
+                       #| caso statement_list'''
+        print_debug("LISTA CASOS")
+        if len(p) == 3:
+            p[1].orelse = [p[2]]
+            p[0] = p[1]
+        if len(p) == 2:
+            p[0] = p[1]
+
+    def p_caso(p):
+        '''caso : CASO PAREN_I bool_expression PAREN_D statement_list
+                | CASO PAREN_I bool_expression PAREN_D statement_list SINO statement_list'''
+        if len(p) == 6:
+            p[0] = If(test = p[3], body = p[5], orelse = [])
+        elif len(p) == 8:
+            p[0] = If(test = p[3], body = p[5], orelse = p[7])
+        print_debug("CASO: " + str(p[3]) +")")
+
+    def p_caso_sino(p):
+        'caso_sino : CASO PAREN_I bool_expression PAREN_D statement_list SINO statement_list'
+        p[0] = If(test = p[3], body = p[5], orelse = [p[7]])
 
     def p_statement_while(p):
         'statement : MIENTRAS PAREN_I bool_expression PAREN_D LLAVE_I statement_list LLAVE_D'
@@ -315,6 +377,48 @@ def gSLParser(debug):
         p[0] = While(test = Name(id='True', ctx=Load()),
                  body = p[2] + end_condition,
                  orelse = [])
+
+    def p_statement_for(p):
+        """statement : DESDE IDENTIFICADOR S_ASIGNACION expression HASTA expression LLAVE_I statement_list LLAVE_D
+                     | DESDE IDENTIFICADOR S_ASIGNACION expression HASTA expression PASO expression LLAVE_I statement_list LLAVE_D
+        """
+        print_debug("Entering. len(p) = " + str(len(p)))
+        if len(p) == 10:
+            # Con incremento por defecto
+            variable_de_control = Assign(targets=[Name(id=p[2], ctx=Store())], value=p[4])
+            increment_statement = AugAssign(target=Name(id=p[2], ctx=Store()), op=Add(), value=Num(n=1))
+            for_structure = While(test = Compare(left = Name(id=p[2], ctx=Load()),
+                                                      ops  = [LtE()],
+                                                      comparators = [p[6]]),
+                                       body = p[8] + [increment_statement],
+                                       orelse=[])
+            p[0] = [variable_de_control, for_structure]
+        elif len(p) == 12:
+            # Con incremento explícito
+
+            # Si el valor de incremento es positivo, en la comparación se
+            # pregunta si la variable_de_control es menor o igual (LtE) al
+            # valor final. Si es incremento negativo, en la comparación se
+            # pregunta si la variable_de_control es mayor o igual (GtE) al
+            # valor final
+            print_debug("Nodo incremento: " + dump(p[8]))
+            increment_value = evaluar_expresion(p[8])
+            increment_value_node = Num(n = int(increment_value))
+            print_debug("Valor incremento: " + dump(increment_value_node))
+            if increment_value >= 0:
+                operador_comparacion = LtE()
+            else:
+                operador_comparacion = GtE()
+            end_value = evaluar_expresion(p[6])
+            end_value_node = Num(n = end_value)
+            variable_de_control = Assign(targets=[Name(id=p[2], ctx=Store())], value=Num(n = int(evaluar_expresion(p[4]))))
+            increment_statement = AugAssign(target=Name(id=p[2], ctx=Store()), op=Add(), value=increment_value_node)
+            for_structure = While(test = Compare(left = Name(id=p[2], ctx=Load()),
+                                                      ops  = [operador_comparacion],
+                                                      comparators = [end_value_node]),
+                                       body = p[10] + [increment_statement],
+                                       orelse=[])
+            p[0] = [variable_de_control, for_structure]
 
     def p_statement_subrutine_call(p):
         'statement : subrutine_call'
@@ -448,12 +552,20 @@ def gSLParser(debug):
     def p_expression_identificador(p):
         'expression : IDENTIFICADOR'
         try:
-            p[0] = identificadores[p[1]]
+            #p[0] = identificadores[p[1]]
+            p[0] = searchIdentificador(p[1])[1] # Retornar el AST
         except LookupError:
             print("Identificador no está definido: '%s'" % p[1])
             p[0] = 0
         p[0] = Name(id = p[1],
                     ctx=Load())
+
+    def searchIdentificador(identificador):
+        for v in identificadores:
+            if v[0] == identificador:
+                return v
+        raise LookupError()
+
 
     def p_expression_cadena(p):
         'expression : CADENA'
@@ -468,6 +580,22 @@ def gSLParser(debug):
 
     def p_error(t):
         print("Syntax error at '%s'" % t.value)
+
+    def evaluar_expresion(node):
+        value_to_eval = fix_missing_locations(Expression(body = node))
+        value_tree = compile(value_to_eval, '<AST>', 'eval')
+        return eval(value_tree, evaluar_identificadores())
+
+    def evaluar_identificadores():
+        evaluados = {}
+        for i, v in enumerate(identificadores):
+            print_debug("Expression body: " + dump(v[1]))
+            exp_to_eval = fix_missing_locations(Expression(body = v[1]))
+            exp_tree = compile(exp_to_eval, '<AST de variable>', 'eval')
+            #v[2] = eval(exp_tree, evaluados)
+            evaluados[v[0]] = eval(exp_tree, evaluados)
+        return evaluados
+
 
     # Build and return the parser
     from gSLLexer import gSLLexer, tokens

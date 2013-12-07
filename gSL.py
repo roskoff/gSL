@@ -1,3 +1,4 @@
+#!/usr/bin/python2
 # -*- coding: utf-8 -*-
 import sys
 import argparse
@@ -26,7 +27,9 @@ if __name__ == "__main__":
     # Imprimir opcionalmente el AST (sin el RTL)
     if argumentos.print_ast:
         from util import formatTree
-        print formatTree(ast.dump(tree, True, False))
+        print "-------------- Inicio impresión de AST --------------"
+        print formatTree(ast.dump(ast.fix_missing_locations(tree), True, True))
+        print "-------------- Fin impresión de AST --------------"
 
     # Agregar funciones predeterminadas
     tree.body = runTimeLibrary.getFunctions() + tree.body
