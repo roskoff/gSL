@@ -33,10 +33,18 @@ def gSLParser(debug):
     type_cadena_node   = Str(s = '')
     type_numerico_node = Num(n = 0)
     type_logico_node   = Name( id = 'True', ctx = Load())
+    # Constantes predefinidas
+    type_const_true  = Name( id = 'True', ctx = Load())
+    type_const_false = Name( id = 'False', ctx = Load())
     # Lista de tripleta que contiene (id, AST, valor)
     identificadores = [("cadena", type_cadena_node, None),
                        ("numerico", type_numerico_node, None),
-                       ("logico", type_logico_node, None)]
+                       ("logico", type_logico_node, None),
+                       # Constantes predefinidas
+                       ("TRUE", type_const_true, "T_CONST"),
+                       ("FALSE", type_const_false, "T_CONST"),
+                       ("SI", type_const_true, "T_CONST"),
+                       ("NO", type_const_false, "T_CONST") ]
 
     def p_start(p):
         """ start : PROGRAMA IDENTIFICADOR body
@@ -44,11 +52,15 @@ def gSLParser(debug):
         """
         print_debug("---------- Inicio del parser ----------")
         astree = Module( body = [])
-        # Antes que nada se agregan los tipos de datos predefinidos
+        # Antes que nada se agregan los tipos de datos predefinidos y constantes
         tipos_predefinidos = [
-            Assign(targets = [Name(id = 'cadena', ctx = Store())], value = Str(s = '')),
-            Assign(targets = [Name(id = 'numerico', ctx = Store())], value = Num(n = 0)),
-            Assign(targets = [Name(id = 'logico', ctx = Store())], value = Name( id = 'True', ctx = Load()))
+            Assign(targets = [Name(id = 'cadena', ctx = Store())], value = type_cadena_node),
+            Assign(targets = [Name(id = 'numerico', ctx = Store())], value = type_numerico_node),
+            Assign(targets = [Name(id = 'logico', ctx = Store())], value = type_logico_node),
+            Assign(targets = [Name(id = 'TRUE', ctx = Store())], value = type_const_true),
+            Assign(targets = [Name(id = 'FALSE', ctx = Store())], value = type_const_false),
+            Assign(targets = [Name(id = 'SI', ctx = Store())], value = type_const_true),
+            Assign(targets = [Name(id = 'NO', ctx = Store())], value = type_const_false),
             ]
         astree.body = astree.body + tipos_predefinidos
 
@@ -236,13 +248,17 @@ def gSLParser(debug):
         print_debug("Tipo asignado: (" + p[3] + ")")
         #XXX Controlar que IDENTIFICADOR sea un tipo de dato
         type_node = Name(id = p[3], ctx = Load())
-        id_list = []
+        ids = []
         for var_id in p[1]:
             print_debug("ID: " + var_id)
-            id_list.append(Name(id = var_id, ctx = Store()))
+            ids.append(Name(id = var_id, ctx = Store()))
+            # Dentro de la produccion id_list ya se agregó el ID
+            # a la lista de identificadores, aquí se actualiza con
+            # su tipo asignado en SL. El tipo interno
+            # será "T_VAR" (variable)
             v = lookupIdentificador(var_id)
-            identificadores.append((var_id, type_node, None))
-        p[0] = Assign(targets = id_list, value = type_node)
+            identificadores.append((var_id, type_node, "T_VAR"))
+        p[0] = Assign(targets = ids, value = type_node)
 
     def p_tipos_item_list(p):
         """ tipos_item_list : tipos_item_list tipos_item
@@ -261,17 +277,55 @@ def gSLParser(debug):
                                  | constantes_item
         """
         # Agregar a la tabla de simbolos, inicializar
+        if len(p) == 3:
+            p[0] = p[1] + [p[2]]
+        elif len(p) == 2:
+            p[0] = [p[1]]
 
     def p_constantes_item(p):
-        """ constantes_item : IDENTIFICADOR S_ASIGNACION IDENTIFICADOR
-                            | IDENTIFICADOR S_ASIGNACION NUMERO
-                            | IDENTIFICADOR S_ASIGNACION CADENA
+        """ constantes_item : constantes_item_cadena
+                            | constantes_item_numero
+                            | constantes_item_identificador
         """
-        # XXX El segundo IDENTIFICADOR en la primera produccion debe ser
-        # necesariamente otra constante (incluyendo constantes predefinidas
-        # tales como TRUE y FALSE
-        print_debug("Constante definida por usuario: (" + str(p[1]) +":"+ str(p[3]) + ")")
-        #p[0] = []
+        p[0] = p[1]
+
+    def p_constantes_item_identificador(p):
+        """ constantes_item_identificador : IDENTIFICADOR S_ASIGNACION IDENTIFICADOR
+        """
+        # p[1] es la constante a definir y p[3] es una constante definida
+        # previamente.
+        # p[1] se debe agregar a la tabla de símbolos, pero antes debemos
+        # confirmar que p[2] está definido y es "T_CONST" (lanza LookupError si
+        # no encuentra)
+        rhs = searchIdentificador(p[3]) # right hand side
+        if rhs[2] != "T_CONST":
+            raise ValueError("A una constante sólo se puede asignar el valor de otra constante")
+        # Si no se lanzó ninguna excepción, agregamos p[1] a identificadores: Su
+        # AST será el identificador dado por p[3] y su tipo interno será "T_CONST"
+        identificadores.append((p[1], p[3], "T_CONST"))
+        print_debug("Constante definida por usuario: (" + str(p[1]) +": "+ str(p[3]) + ")")
+        p[0] = Assign(targets = [Name(id = p[1], ctx = Store())],
+                      value   = Name(id = p[3], ctx = Load()))
+
+    def p_constantes_item_cadena(p):
+        """ constantes_item_cadena : IDENTIFICADOR S_ASIGNACION CADENA
+        """
+        print_debug("Constante definida por usuario: (" + str(p[1]) +": "+ str(p[3]) + ")")
+        type_node = Str(s = p[3])
+        # Agregamos a la tabla de simbolos tipo interno "T_CONST" (constante)
+        identificadores.append((p[1], type_node, "T_CONST"))
+        p[0] = Assign(targets = [Name(id = p[1], ctx = Store())],
+                      value   = type_node)
+
+    def p_constantes_item_numero(p):
+        """ constantes_item_numero : IDENTIFICADOR S_ASIGNACION NUMERO
+        """
+        print_debug("Constante definida por usuario: (" + str(p[1]) +": "+ str(p[3]) + ")")
+        type_node = Num(n = p[3])
+        # Agregamos a la tabla de simbolos tipo interno "T_CONST" (constante)
+        identificadores.append((p[1], type_node, "T_CONST"))
+        p[0] = Assign(targets = [Name(id = p[1], ctx = Store())],
+                      value   = type_node)
 
     def p_id_list(p):
         """ id_list : id_list COMA IDENTIFICADOR
@@ -281,8 +335,9 @@ def gSLParser(debug):
             p[0] = [p[3]] + p[1]
         elif len(p) == 2:
             p[0] = [p[1]]
-            #identificadores[p[1]] = None # Define e inicializa
-            identificadores.append((p[1], None, None)) # Define
+            # Define el identificador, se inicializa en la
+            # producción variables_item
+            identificadores.append((p[1], None, None))
         #print_debug( "Lista IDs: (" + str(identificadores) + ")")
 
     def p_empty(p):
@@ -292,12 +347,17 @@ def gSLParser(debug):
         pass
 
     def p_statement_assign(p):
-        'statement : IDENTIFICADOR S_ASIGNACION expression'
+        '''statement : IDENTIFICADOR S_ASIGNACION expression
+                     | IDENTIFICADOR S_ASIGNACION bool_expression
+        '''
         try:
-            #p[0] = identificadores[p[1]] # El ID debe estar previamente definido
-            #identificadores[p[1]] = p[3]
-            variable = lookupIdentificador(p[1]) # El ID debe estar previamente definido
-            p[0] = variable[1] # (id, AST, valor), Asignar AST
+            # El ID debe estar previamente definido,
+            # variable es (id, AST, tipo_interno), Asignar AST sólo si es de
+            # tipo interno "T_VAR"
+            variable = lookupIdentificador(p[1])
+            if variable[2] != "T_VAR":
+                raise ValueError("Sólo se puede asignar valor a una variable")
+            p[0] = variable[1]
             # Actualizar el AST y reinsertar en identificadores
             identificadores.append((p[1], p[3], None))
             print_debug(p[1] + ' <- ' + str(p[3]))
@@ -337,8 +397,6 @@ def gSLParser(debug):
     def p_lista_casos(p):
         '''lista_casos : caso lista_casos
                        | caso '''
-                       #|  '''
-                       #| caso statement_list'''
         print_debug("LISTA CASOS")
         if len(p) == 3:
             p[1].orelse = [p[2]]
@@ -518,6 +576,11 @@ def gSLParser(debug):
         elif p[2] == '>=': p[0] = Compare(left = p[1], ops = [GtE()], comparators = [p[3]])
         elif p[2] == '==': p[0] = Compare(left = p[1], ops = [Eq()], comparators = [p[3]])
         elif p[2] == '<>': p[0] = Compare(left = p[1], ops = [NotEq()], comparators = [p[3]])
+
+    def p_expression_test_exp_identificador(p):
+        '''test_expression : IDENTIFICADOR'''
+        v = searchIdentificador(p[1])
+        p[0] = Name(id = p[1], ctx = Load())
 
     def p_expression_test_exp_group(p):
         '''test_expression : PAREN_I bool_expression PAREN_D'''
