@@ -331,13 +331,16 @@ def gSLParser(debug):
         """ id_list : id_list COMA IDENTIFICADOR
                     | IDENTIFICADOR
         """
+        identificador = None
         if len(p) == 4:
             p[0] = [p[3]] + p[1]
+            identificador = p[3]
         elif len(p) == 2:
             p[0] = [p[1]]
-            # Define el identificador, se inicializa en la
-            # producción variables_item
-            identificadores.append((p[1], None, None))
+            identificador = p[1]
+        # Define el identificador, se inicializa en la
+        # producción variables_item
+        identificadores.append((identificador, None, None))
         #print_debug( "Lista IDs: (" + str(identificadores) + ")")
 
     def p_empty(p):
