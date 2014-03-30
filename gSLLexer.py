@@ -40,7 +40,7 @@ def gSLLexer():
         'hasta'      : 'HASTA',
         'inicio'     : 'INICIO',
         'lib'        : 'LIB',  # Listado como palabra reservada, pero no se en que caso se usa
-        'libext'     : 'LIBEXT',  # Listado como palabra reservada, pero no se en que caso se usa 
+        'libext'     : 'LIBEXT',  # Listado como palabra reservada, pero no se en que caso se usa
         'matriz'     : 'MATRIZ',
         'mientras'   : 'MIENTRAS',
         'not'        : 'NOT',
@@ -88,8 +88,9 @@ def gSLLexer():
 
     def t_COMENTARIO(t):
         r'(/\*(.|\n)*?\*/)|(//.*)'
+        t.lexer.lineno += t.value.count('\n')
         pass
-    
+
     def t_NUMERO(t):
         r'(\d+(\.\d+)?)([eE][+-]?\d+)?'
         try:
@@ -101,7 +102,7 @@ def gSLLexer():
 
     def t_IDENTIFICADOR(t):
         r'[a-zA-Z_ñÑ][a-zA-Z0-9_ñÑ]*'
-        t.type = reserved.get(t.value,'IDENTIFICADOR')    # Verificar si es palabra reservada 
+        t.type = reserved.get(t.value,'IDENTIFICADOR')    # Verificar si es palabra reservada
         t.value = t.value[0:31]  # Solo son validos los 32 primeros caracteres (Introduccion al Lenguaje SL, p. 15)
         return t
 
@@ -109,19 +110,19 @@ def gSLLexer():
         r'(\".*?\")|(\'.*?\')'
         return t
 
-    # Definimos esta regla para poder controlar los numeros de lineas 
+    # Definimos esta regla para poder controlar los numeros de lineas
     def t_newline(t):
         r'\n+'
         t.lexer.lineno += len(t.value)
 
     # Una cadena que contiene caracteres a ignorar (espacios y tabuladores)
     t_ignore = " \t"
-    
+
     # Regla para manejar errores
     def t_error(t):
         print("Caracter ilegal: '%s'" % t.value[0])
         t.lexer.skip(1)
-        
+
     # Build the lexer
     import ply.lex as lex
     return lex.lex()

@@ -258,7 +258,7 @@ def gSLParser(debug):
             # será "T_VAR" (variable)
             v = lookupIdentificador(var_id)
             identificadores.append((var_id, type_node, "T_VAR"))
-        p[0] = Assign(targets = ids, value = type_node)
+        p[0] = Assign(targets = ids, value = type_node, lineno = p.lineno(2))
 
     def p_tipos_item_list(p):
         """ tipos_item_list : tipos_item_list tipos_item
@@ -305,7 +305,7 @@ def gSLParser(debug):
         identificadores.append((p[1], p[3], "T_CONST"))
         print_debug("Constante definida por usuario: (" + str(p[1]) +": "+ str(p[3]) + ")")
         p[0] = Assign(targets = [Name(id = p[1], ctx = Store())],
-                      value   = Name(id = p[3], ctx = Load()))
+                      value   = Name(id = p[3], ctx = Load()), lineno = p.lineno(2))
 
     def p_constantes_item_cadena(p):
         """ constantes_item_cadena : IDENTIFICADOR S_ASIGNACION CADENA
@@ -315,7 +315,7 @@ def gSLParser(debug):
         # Agregamos a la tabla de simbolos tipo interno "T_CONST" (constante)
         identificadores.append((p[1], type_node, "T_CONST"))
         p[0] = Assign(targets = [Name(id = p[1], ctx = Store())],
-                      value   = type_node)
+                      value   = type_node, lineno = p.lineno(2))
 
     def p_constantes_item_numero(p):
         """ constantes_item_numero : IDENTIFICADOR S_ASIGNACION NUMERO
@@ -325,7 +325,7 @@ def gSLParser(debug):
         # Agregamos a la tabla de simbolos tipo interno "T_CONST" (constante)
         identificadores.append((p[1], type_node, "T_CONST"))
         p[0] = Assign(targets = [Name(id = p[1], ctx = Store())],
-                      value   = type_node)
+                      value   = type_node, lineno = p.lineno(2))
 
     def p_id_list(p):
         """ id_list : id_list COMA IDENTIFICADOR
@@ -369,7 +369,7 @@ def gSLParser(debug):
             raise NameError("'%s' no está definido" % p[1])
 
         p[0] = Assign(targets = [Name(id=p[1], ctx=Store())],
-                      value = p[3])
+                      value = p[3], lineno = p.lineno(2))
 
     def lookupIdentificador(identificador):
         print_debug("ID buscado: " + identificador)
@@ -381,12 +381,12 @@ def gSLParser(debug):
 
     def p_statement_if(p):
         'statement : SI PAREN_I bool_expression PAREN_D LLAVE_I statement_list LLAVE_D'
-        p[0] = If(test = p[3], body = p[6], orelse = [])
+        p[0] = If(test = p[3], body = p[6], orelse = [], lineno = p.lineno(3))
         print_debug("SI: (" + str(p[3]) +")")
 
     def p_statement_if_else(p):
         'statement : SI PAREN_I bool_expression PAREN_D LLAVE_I statement_list SINO statement_list LLAVE_D'
-        p[0] = If(test = p[3], body = p[6], orelse = p[8])
+        p[0] = If(test = p[3], body = p[6], orelse = p[8], lineno = p.lineno(3))
 
     def p_statement_eval(p):
         '''statement : EVAL LLAVE_I lista_casos caso_sino LLAVE_D
@@ -411,18 +411,18 @@ def gSLParser(debug):
         '''caso : CASO PAREN_I bool_expression PAREN_D statement_list
                 | CASO PAREN_I bool_expression PAREN_D statement_list SINO statement_list'''
         if len(p) == 6:
-            p[0] = If(test = p[3], body = p[5], orelse = [])
+            p[0] = If(test = p[3], body = p[5], orelse = [], lineno = p.lineno(3))
         elif len(p) == 8:
-            p[0] = If(test = p[3], body = p[5], orelse = p[7])
+            p[0] = If(test = p[3], body = p[5], orelse = p[7], lineno = p.lineno(3))
         print_debug("CASO: " + str(p[3]) +")")
 
     def p_caso_sino(p):
         'caso_sino : CASO PAREN_I bool_expression PAREN_D statement_list SINO statement_list'
-        p[0] = If(test = p[3], body = p[5], orelse = [p[7]])
+        p[0] = If(test = p[3], body = p[5], orelse = [p[7]], lineno = p.lineno(3))
 
     def p_statement_while(p):
         'statement : MIENTRAS PAREN_I bool_expression PAREN_D LLAVE_I statement_list LLAVE_D'
-        p[0] = While(test = p[3], body = p[6], orelse = [])
+        p[0] = While(test = p[3], body = p[6], orelse = [], lineno = p.lineno(3))
 
     def p_statement_repeat_until(p):
         'statement : REPETIR statement_list HASTA PAREN_I bool_expression PAREN_D'
@@ -434,10 +434,10 @@ def gSLParser(debug):
         #    if condition():
         #      break
         # Tomado de: http://bit.ly/1fu0Qfc
-        end_condition = [If(test = p[5], body = [Break()], orelse = [])]
+        end_condition = [If(test = p[5], body = [Break()], orelse = [], lineno = p.lineno(5))]
         p[0] = While(test = Name(id='True', ctx=Load()),
                  body = p[2] + end_condition,
-                 orelse = [])
+                 orelse = [], lineno = p.lineno(5))
 
     def p_statement_for(p):
         """statement : DESDE IDENTIFICADOR S_ASIGNACION expression HASTA expression LLAVE_I statement_list LLAVE_D
@@ -446,13 +446,13 @@ def gSLParser(debug):
         print_debug("Entering. len(p) = " + str(len(p)))
         if len(p) == 10:
             # Con incremento por defecto
-            variable_de_control = Assign(targets=[Name(id=p[2], ctx=Store())], value=p[4])
-            increment_statement = AugAssign(target=Name(id=p[2], ctx=Store()), op=Add(), value=Num(n=1))
-            for_structure = While(test = Compare(left = Name(id=p[2], ctx=Load()),
+            variable_de_control = Assign(targets=[Name(id=p[2], ctx=Store())], value=p[4], lineno = p.lineno(4))
+            increment_statement = AugAssign(target=Name(id=p[2], ctx=Store()), op=Add(), value=Num(n=1), lineno = p.lineno(4))
+            for_structure = While(test = Compare(left = Name(id=p[2], ctx=Load(), lineno = p.lineno(2)),
                                                       ops  = [LtE()],
                                                       comparators = [p[6]]),
                                        body = p[8] + [increment_statement],
-                                       orelse=[])
+                                       orelse=[], lineno = p.lineno(4))
             p[0] = [variable_de_control, for_structure]
         elif len(p) == 12:
             # Con incremento explícito
@@ -472,18 +472,18 @@ def gSLParser(debug):
                 operador_comparacion = GtE()
             end_value = evaluar_expresion(p[6])
             end_value_node = Num(n = end_value)
-            variable_de_control = Assign(targets=[Name(id=p[2], ctx=Store())], value=Num(n = int(evaluar_expresion(p[4]))))
-            increment_statement = AugAssign(target=Name(id=p[2], ctx=Store()), op=Add(), value=increment_value_node)
-            for_structure = While(test = Compare(left = Name(id=p[2], ctx=Load()),
+            variable_de_control = Assign(targets=[Name(id=p[2], ctx=Store())], value=Num(n = int(evaluar_expresion(p[4]))), lineno = p.lineno(4))
+            increment_statement = AugAssign(target=Name(id=p[2], ctx=Store()), op=Add(), value=increment_value_node, lineno = p.lineno(4))
+            for_structure = While(test = Compare(left = Name(id=p[2], ctx=Load(), lineno = p.lineno(2)),
                                                       ops  = [operador_comparacion],
                                                       comparators = [end_value_node]),
                                        body = p[10] + [increment_statement],
-                                       orelse=[])
+                                       orelse=[], lineno = p.lineno(4))
             p[0] = [variable_de_control, for_structure]
 
     def p_statement_subrutine_call(p):
         'statement : subrutine_call'
-        p[0] = p[1]
+        p[0] = Expr(value = p[1])
 
     def p_subrutine_call(p):
         'subrutine_call : IDENTIFICADOR PAREN_I arguments_list PAREN_D'
@@ -493,11 +493,12 @@ def gSLParser(debug):
 
         if p[1] == 'leer':
             p[0] = generarLlamadaLeer(p[3])
+            p[0].lineno = p.lineno(1)
         else:
-            p[0] = Expr(value = Call(func = Name(id = p[1], ctx=Load()),
-                                 args = p[3],
-                                 keywords=[],
-                                 starargs=None, kwargs=None))
+            p[0] = Call(func = Name(id = p[1], ctx=Load()),
+                        args = p[3],
+                        keywords=[],
+                        starargs=None, kwargs=None, lineno = p.lineno(1))
         print_debug(dump(p[0]))
 
     # leer() espera una lista de diccionarios con: el nombre de las variable que
@@ -521,11 +522,17 @@ def gSLParser(debug):
                                              starargs = None,
                                              kwargs   = None)]))
 
-        fcall = Expr(value = Call(func = Name(id = 'leer', ctx=Load()),
-                                  args = [List(elts = vargs, ctx = Load())],
-                                  keywords = [],
-                                  starargs = None,
-                                  kwargs   = None))
+        #fcall = Expr(value = Call(func = Name(id = 'leer', ctx=Load()),
+        #                          args = [List(elts = vargs, ctx = Load())],
+        #                          keywords = [],
+        #                          starargs = None,
+        #                          kwargs   = None))
+        fcall = Call(func = Name(id = 'leer', ctx=Load()),
+                     args = [List(elts = vargs, ctx = Load())],
+                     keywords = [],
+                     starargs = None,
+                     kwargs   = None)
+        print_debug("Llamada a LEER generada: " + str(fcall))
         return fcall
 
     def p_arguments_list(p):
@@ -536,8 +543,12 @@ def gSLParser(debug):
             p[0] = p[1] + [p[3]]
             print_debug(dump(p[3]))
         elif len(p) == 2:
-            p[0] = [p[1]]
-            print_debug(dump(p[1]))
+            if p[1] != None:
+                p[0] = [p[1]]
+                print_debug(dump(p[1]))
+            else:
+                p[0] = []
+                print_debug("Sin argumentos")
 
     def p_argument(p):
         """ argument : expression
@@ -552,16 +563,16 @@ def gSLParser(debug):
             p[0] = p[1]
             print_debug("bool_expression: (" + str(p[0]) +")")
         elif len(p) == 4:
-            p[0] = BoolOp(op = Or(), values = [p[1], p[3]])
+            p[0] = BoolOp(op = Or(), values = [p[1], p[3]], lineno = p.lineno(1))
 
     def p_expression_and(p):
         '''and_expression : and_expression AND and_expression
                           | NOT and_expression
                           | test_expression'''
         if len(p) == 4:
-            p[0] = BoolOp(op = And(), values = [p[1], p[3]])
+            p[0] = BoolOp(op = And(), values = [p[1], p[3]], lineno = p.lineno(1))
         elif len(p) == 3:
-            p[0] = UnaryOp(op = Not(), operand = p[2])
+            p[0] = UnaryOp(op = Not(), operand = p[2], lineno = p.lineno(1))
         elif len(p) == 2:
             p[0] = p[1]
             print_debug("and_expression: (" + str(p[1]) +")")
@@ -573,17 +584,17 @@ def gSLParser(debug):
                            | expression S_MAYOR_IGUAL_QUE expression
                            | expression S_IGUAL_QUE expression
                            | expression S_DISTINTO_DE expression'''
-        if   p[2] == '<' : p[0] = Compare(left = p[1], ops = [Lt()], comparators = [p[3]])
-        elif p[2] == '>' : p[0] = Compare(left = p[1], ops = [Gt()], comparators = [p[3]])
-        elif p[2] == '<=': p[0] = Compare(left = p[1], ops = [LtE()], comparators = [p[3]])
-        elif p[2] == '>=': p[0] = Compare(left = p[1], ops = [GtE()], comparators = [p[3]])
-        elif p[2] == '==': p[0] = Compare(left = p[1], ops = [Eq()], comparators = [p[3]])
-        elif p[2] == '<>': p[0] = Compare(left = p[1], ops = [NotEq()], comparators = [p[3]])
+        if   p[2] == '<' : p[0] = Compare(left = p[1], ops = [Lt()], comparators = [p[3]], lineno = p.lineno(1))
+        elif p[2] == '>' : p[0] = Compare(left = p[1], ops = [Gt()], comparators = [p[3]], lineno = p.lineno(1))
+        elif p[2] == '<=': p[0] = Compare(left = p[1], ops = [LtE()], comparators = [p[3]], lineno = p.lineno(1))
+        elif p[2] == '>=': p[0] = Compare(left = p[1], ops = [GtE()], comparators = [p[3]], lineno = p.lineno(1))
+        elif p[2] == '==': p[0] = Compare(left = p[1], ops = [Eq()], comparators = [p[3]], lineno = p.lineno(1))
+        elif p[2] == '<>': p[0] = Compare(left = p[1], ops = [NotEq()], comparators = [p[3]], lineno = p.lineno(1))
 
     def p_expression_test_exp_identificador(p):
         '''test_expression : IDENTIFICADOR'''
         v = searchIdentificador(p[1])
-        p[0] = Name(id = p[1], ctx = Load())
+        p[0] = Name(id = p[1], ctx = Load(), lineno = p.lineno(1))
 
     def p_expression_test_exp_group(p):
         '''test_expression : PAREN_I bool_expression PAREN_D'''
@@ -594,18 +605,18 @@ def gSLParser(debug):
                       | expression S_MENOS expression
                       | expression S_MULT expression
                       | expression S_DIV expression'''
-        if   p[2] == '+': p[0] = BinOp(left = p[1], op = Add(),  right = p[3])
-        elif p[2] == '-': p[0] = BinOp(left = p[1], op = Sub(),  right = p[3])
-        elif p[2] == '*': p[0] = BinOp(left = p[1], op = Mult(), right = p[3])
-        elif p[2] == '/': p[0] = BinOp(left = p[1], op = Div(),  right = p[3])
+        if   p[2] == '+': p[0] = BinOp(left = p[1], op = Add(),  right = p[3], lineno = p.lineno(1))
+        elif p[2] == '-': p[0] = BinOp(left = p[1], op = Sub(),  right = p[3], lineno = p.lineno(1))
+        elif p[2] == '*': p[0] = BinOp(left = p[1], op = Mult(), right = p[3], lineno = p.lineno(1))
+        elif p[2] == '/': p[0] = BinOp(left = p[1], op = Div(),  right = p[3], lineno = p.lineno(1))
 
     def p_expression_uminus(p):
         'expression : S_MENOS expression %prec U_S_MENOS'
-        p[0] = UnaryOp(op = USub(), operand = p[2])
+        p[0] = UnaryOp(op = USub(), operand = p[2], lineno = p.lineno(1))
 
     def p_expression_uplus(p):
         'expression : S_MAS expression %prec U_S_MAS'
-        p[0] = UnaryOp(op = UAdd(), operand = p[2])
+        p[0] = UnaryOp(op = UAdd(), operand = p[2], lineno = p.lineno(1))
 
     def p_expression_group(p):
         'expression : PAREN_I expression PAREN_D'
@@ -613,7 +624,7 @@ def gSLParser(debug):
 
     def p_expression_numero(p):
         'expression : NUMERO'
-        p[0] = Num(n = p[1])
+        p[0] = Num(n = p[1], lineno = p.lineno(1))
 
     def p_expression_identificador(p):
         'expression : IDENTIFICADOR'
@@ -624,7 +635,7 @@ def gSLParser(debug):
             print("Identificador no está definido: '%s'" % p[1])
             p[0] = 0
         p[0] = Name(id = p[1],
-                    ctx=Load())
+                    ctx=Load(), lineno = p.lineno(1))
 
     def searchIdentificador(identificador):
         for v in identificadores:
@@ -637,12 +648,12 @@ def gSLParser(debug):
         'expression : CADENA'
         # Tomamos desde el segundo caracter hasta el penúltimo
         # para sacar las comillas
-        p[0] = Str(s = p[1][1:-1])
+        p[0] = Str(s = p[1][1:-1], lineno = p.lineno(1))
         print_debug("Cadena: '%s'" % p[1])
 
     def p_expression_subrutine_call(p):
         "expression : subrutine_call"
-        p[0] = -1 # XXX Por el momento se asigna -1 para ver el efecto que tien en las expresiones
+        p[0] = p[1] # Num(n = -1) # XXX Por el momento se asigna -1 para ver el efecto que tien en las expresiones
 
     def p_error(t):
         print("Syntax error at '%s'" % t.value)

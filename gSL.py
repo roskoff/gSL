@@ -3,13 +3,15 @@
 import sys
 import argparse
 import runTimeLibrary
+import debugUtils
 from gSLParser import gSLParser
 
 
 if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser(description = 'gSL - Intérprete para el lenguaje SL')
-    arg_parser.add_argument('-d', '--print-debug', action='store_true')
+    arg_parser.add_argument('-l', '--print-logs', action='store_true')
     arg_parser.add_argument('-t', '--print-ast', action='store_true')
+    arg_parser.add_argument('-d', '--debug', action='store_true')
     arg_parser.add_argument('archivo_fuente')
     argumentos = arg_parser.parse_args()
 
@@ -18,10 +20,10 @@ if __name__ == "__main__":
     source_code = file.read()
 
     # Creamos el parser
-    gParser = gSLParser(debug = argumentos.print_debug)
+    gParser = gSLParser(debug = argumentos.print_logs)
 
     # Generamos el AST
-    tree = gParser.parse(source_code, debug=0)
+    tree = gParser.parse(source_code, debug=0, tracking=True)
 
     import ast
     # Imprimir opcionalmente el AST (sin el RTL)
@@ -30,6 +32,12 @@ if __name__ == "__main__":
         print "-------------- Inicio impresión de AST --------------"
         print formatTree(ast.dump(ast.fix_missing_locations(tree), True, True))
         print "-------------- Fin impresión de AST --------------"
+
+
+    # Agregar funciones de depuración
+    if argumentos.debug:
+        tree.body = debugUtils.getDebugFunctions() + tree.body
+        tree = ast.fix_missing_locations(tree)
 
     # Agregar funciones predeterminadas
     tree.body = runTimeLibrary.getFunctions() + tree.body
