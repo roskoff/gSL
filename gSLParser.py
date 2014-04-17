@@ -362,7 +362,7 @@ def gSLParser(debug):
                 raise ValueError("Sólo se puede asignar valor a una variable")
             p[0] = variable[1]
             # Actualizar el AST y reinsertar en identificadores
-            identificadores.append((p[1], p[3], None))
+            identificadores.append((p[1], p[3], 'T_VAR'))
             print_debug(p[1] + ' <- ' + str(p[3]))
         except LookupError:
             print_debug("'%s' no está definido'" % p[1])
